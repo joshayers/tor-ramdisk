@@ -1,0 +1,894 @@
+#!/bin/ash
+
+trap ctrl_c INT
+
+ctrl_c()
+{
+	echo
+}
+
+startnet()
+{
+	echo
+	echo "*** CONFIGURING NETWORK *** "
+	echo 
+	echo "The following interface found: "
+	echo
+
+################################################################################
+
+	unset MACS
+	MACS=$( ifconfig -a | grep '^\w' | grep '^eth' | awk '{ print $1 "\t" $5 }' )
+
+	OLD_IFS=$IFS
+	IFS='\n'
+
+	for I in $MACS
+	do
+		echo $I
+	done
+	echo
+
+	IFS=$OLD_IFS
+
+################################################################################
+
+	unset ETHS
+	ETHS=$( ifconfig -a | grep '^\w' | grep '^eth' | awk '{ print $1 }' )
+
+	for J in $ETHS
+	do
+		ifconfig $J down
+	done
+
+	echo -n "Enter the ID of your external card: "
+	unset ETH
+	read ETH
+
+	echo $ETHS | grep -q $ETH - || return 1
+
+################################################################################
+
+	echo "Do you wish to use static or dynamic IP assignment?"
+	echo
+	echo -n "Enter STATIC or DYNAMIC (all upper case): "
+	unset STATDYN
+	read STATDYN
+
+	killall -9 udhcpc 2>/dev/null
+	echo -n > /etc/resolv.conf
+
+	if [ "x$STATDYN" == "xSTATIC" ]
+	then
+
+	########################################################################
+
+		echo -n "Enter your server's IP address xxx.xxx.xxx.xxx: "
+		unset SIP
+		read SIP
+
+		echo "Enter your server's netmask xxx.xxx.xxx.xxx "
+		echo -n "or just hit enter for the default: " 
+		unset MASK
+		read MASK
+
+		if [ "x$MASK" == "x" ]
+		then
+			ifconfig $ETH $SIP >/dev/null 2>&1 || return 2
+		else
+			ifconfig $ETH $SIP netmask $MASK >/dev/null 2>&1 || return 2
+		fi
+
+	########################################################################
+	
+		echo -n "Enter the router's IP address xxx.xxx.xxx.xxx: "
+		unset RIP
+		read RIP
+
+		route add default gw $RIP dev eth0 >/dev/null 2>&1 || return 3
+		ping -c 3 $RIP >/dev/null 2>&1 || return 4
+
+	########################################################################
+
+		echo -n "Enter the nameserver's IP address xxx.xxx.xxx.xxx: "
+		unset NAME
+		read NAME
+
+		echo "nameserver $NAME" > /etc/resolv.conf
+		nslookup www.google.com >/dev/null 2>&1 || return 5
+
+	#########################################################################
+
+	elif [ "x$STATDYN" == "xDYNAMIC" ]
+	then
+
+		echo
+		echo "Do you want to specify a DNS server, or use the one offered by DHCP?"
+		echo -n "Enter YES to specify a DNS server, NO to use the one offered (all upper case):"
+		unset DNS
+		read DNS
+
+
+		if [ "x$DNS" == "xYES" ]
+		then
+			ifconfig $ETH up
+			udhcpc -i $ETH -s /etc/udhcpc.nodns 2>&1 || return 6
+
+			echo -n "Enter the nameserver's IP address xxx.xxx.xxx.xxx: "
+			unset NAME
+			read NAME
+
+			echo "nameserver $NAME" > /etc/resolv.conf
+			nslookup www.google.com >/dev/null 2>&1 || return 5
+
+		else
+			ifconfig $ETH up
+			udhcpc -i $ETH -s /etc/udhcpc 2>&1 || return 6
+		fi
+
+	else
+
+		echo "Please specify whether you want to use STATIC or DYNAMIC ip assignment."
+		return 7
+
+	fi
+
+################################################################################
+
+	echo "Restarting ntpd now that the network is up ... "
+	killall -9 ntpd
+	echo
+	echo
+
+################################################################################
+
+	return 0
+}
+
+
+importing()
+{
+	echo
+	echo "*** IMPORTING/GENERATING TORRC *** "
+	echo 
+	echo "Do you want to import a torrc or generate one?"
+	echo "NOTE: Only ftp supported at present"
+	echo
+	echo -n "Enter IMPORT or GENERATE (all upper case): "
+	if [ -f /etc/tor/torrc ]
+	then
+		echo
+		echo "WARNING: You already have a torrc!"
+		echo "WARNING: If you reconfigure it, reload tor for it to take effect!"
+		echo -n "Just hit enter to continue using it: "
+	fi
+	unset IMPORTTORRC
+	read IMPORTTORRC
+
+	if [ "x$IMPORTTORRC" == "xIMPORT" ]
+	then
+
+		echo "Importing torrc ..."
+		echo
+
+		echo -n "Enter the hostname/IP of the FTP server: "
+		unset HOST
+		read HOST
+	
+		echo -n "Enter the remote path of torrc (eg. pub/torrc ): "
+		unset FTPPATH
+		read FTPPATH
+
+		echo -n "Enter the username (or anonymous) of the FTP account: "
+		unset USER
+		read USER
+
+		echo -n "Enter the password of the FTP account (will not echo): "
+		unset PASS
+		stty -echo
+		read PASS
+		stty echo
+		echo
+
+		ftpget -u $USER -p $PASS $HOST /etc/tor/torrc $FTPPATH || return 1
+
+		echo
+		echo "<torrc successfully imported>"
+		echo
+
+	elif [ "x$IMPORTTORRC" == "xGENERATE" ]
+	then
+
+		echo "Generating a new torrc ..."
+		echo "NOTE: Not all the torrc options are available!"
+		echo
+
+		echo "RunAsDaemon 1" > /etc/tor/torrc
+		echo "DataDirectory /var/tor" >> /etc/tor/torrc
+
+		echo -n "Enter your server's nickname: "
+		unset NAME
+		read NAME
+		echo "Nickname $NAME" >> /etc/tor/torrc
+
+		echo -n "Enter your email: "
+		unset EMAIL
+		read EMAIL
+		echo "ContactInfo $EMAIL" >> /etc/tor/torrc
+
+		echo -n "Enter the bandwidth cap (e.g 250KB ): "
+		unset BANDWIDTH
+		read BANDWIDTH
+		echo "BandwidthRate $BANDWIDTH" >> /etc/tor/torrc
+
+		echo "ORPort 9001" >> /etc/tor/torrc
+
+		echo
+		echo "Do you want to run as an directory server?"
+		echo "Enter DIRECTORY (all upper case) if you do"
+		echo -n "or just hit enter if you don't: "
+		unset DIRECTORY
+		read DIRECTORY
+
+		if [ "x$DIRECTORY" == "xDIRECTORY" ]
+		then
+			echo "DirPort 9030" >> /etc/tor/torrc
+		fi
+
+		echo
+		echo "Do you want to run as an exit node?"
+		echo "Enter EXIT (all upper case) if you do"
+		echo -n "or just hit enter if you don't: "
+		unset EXIT
+		read EXIT
+
+		if [ "x$EXIT" != "xEXIT" ]
+		then
+			echo "ExitPolicy reject *:*" >> /etc/tor/torrc
+		fi
+
+	else
+
+		[ -f /etc/tor/torrc ] || return 2
+
+	fi
+
+	echo
+	echo
+	echo "This is what your existing torrc looks like ... "
+	echo "<torrc>"
+	cat /etc/tor/torrc
+	echo "</torrc>"
+	echo
+
+	echo "Do you want to edit it with vi?"
+	echo "Enter EDIT (all upper case) if you do"
+	echo -n "or just hit enter if you don't: "
+	unset EDIT
+	read EDIT
+
+	if [ "x$EDIT" == "xEDIT" ]
+	then
+		vi /etc/tor/torrc
+	fi
+
+################################################################################
+
+	echo
+	echo "*** IMPORTING/GENERATING SECRET KEY *** "
+	echo 
+
+	echo "Do you want to import a secret key or generate one?"
+	echo "NOTE: Only ftp supported at present"
+	echo
+	echo -n "Enter IMPORT or GENERATE (all upper case): "
+	if [ -f /var/tor/keys/secret_id_key ]
+	then
+		echo
+		echo "WARNING: You already have a secret_id_key!"
+		echo "WARNING: If you regenerate it, reload tor for it to take effect!"
+		echo -n "Just hit enter to continue using it: "
+	fi
+	unset IMPORTSSL
+	read IMPORTSSL
+
+	if [ "x$IMPORTSSL" == "xIMPORT" ]
+	then
+
+		echo "Importing secret key ..."
+		echo
+
+		echo -n "Enter the hostname/IP of the FTP server: "
+		unset HOST
+		read HOST
+	
+		echo -n "Enter the remote path of secret_id_key (eg. notpub/secret_id_key'): "
+		unset FTPPATH
+		read FTPPATH
+
+		echo -n "Enter the username (or anonymous) of the FTP account: "
+		unset USER
+		read USER
+
+		echo -n "Enter the password of the FTP account (will not echo): "
+		unset PASS
+		stty -echo
+		read PASS
+		stty echo
+		echo
+
+		ftpget -u $USER -p $PASS $HOST /var/tor/keys/secret_id_key $FTPPATH || return 3
+		chown tor:tor /var/tor/keys/secret_id_key
+		chmod 600 /var/tor/keys/secret_id_key
+
+		echo
+		echo "<secret_id_key successfully imported>"
+		echo
+
+	elif [ "x$IMPORTSSL" == "xGENERATE" ]
+	then
+
+		rm -f /var/tor/keys/secret_id_key
+		echo "A new secret key will be generated when tor is started ... "
+
+	else
+
+		if [ -f /var/tor/keys/secret_id_key ]
+		then
+			echo "Continuing to use existing secret_id_key"
+		else
+			return 4
+		fi
+
+	fi
+
+################################################################################
+
+	return 0
+
+}
+
+
+exporting()
+{
+	echo
+	echo "*** EXPORTING TORRC *** "
+	echo 
+	echo "Do you want to export your torrc?"
+	echo "NOTE: Only ftp supported at present"
+	echo "Enter EXPORT (all upper case) if you do"
+	echo -n "or just hit enter if you don't: "
+	unset EXPORTTORRC
+	read EXPORTTORRC
+
+	if [ "x$EXPORTTORRC" == "xEXPORT" ]
+	then
+		if [ ! -f /etc/tor/torrc ]
+		then
+			echo "WARNING: There is no torrc to export ..."
+		else
+			echo "Exporting torrc ..."
+			echo
+
+			echo -n "Enter the hostname/IP of the FTP server: "
+			unset HOST
+			read HOST
+	
+			echo -n "Enter the remote path to save torrc (eg. pub/torrc): "
+			unset FTPPATH
+			read FTPPATH
+
+			echo -n "Enter the username (or anonymous) of the FTP account: "
+			unset USER
+			read USER
+
+			echo -n "Enter the password of the FTP account (will not echo): "
+			unset PASS
+			stty -echo
+			read PASS
+			stty echo
+			echo
+
+			ftpput -u $USER -p $PASS $HOST $FTPPATH /etc/tor/torrc || return 1
+
+			echo
+			echo "<torrc successfully exported>"
+			echo
+		fi
+	fi
+
+	echo 
+	echo
+	echo "*** EXPORTING SECRET KEY  *** "
+	echo 
+	echo "Do you want to export your secret_id_key?"
+	echo "NOTE: Only ftp supported at present"
+	echo "Enter EXPORT (all upper case) if you do"
+	echo -n "or just hit enter if you don't: "
+	unset EXPORTSSL
+	read EXPORTSSL
+
+	if [ "x$EXPORTSSL" == "xEXPORT" ]
+	then
+		if [ ! -f /var/tor/keys/secret_id_key ]
+		then
+			echo "WARNING: There is no secret_id_key to export ..."
+		else
+			echo "Exporting secret_id_key ..."
+			echo
+
+			echo -n "Enter the hostname/IP of the FTP server: "
+			unset HOST
+			read HOST
+	
+			echo -n "Enter the remote path to save secret_id_key (eg. notpub/secret_id_key): "
+			unset FTPPATH
+			read FTPPATH
+
+			echo -n "Enter the username (or anonymous) of the FTP account: "
+			unset USER
+			read USER
+
+			echo -n "Enter the password of the FTP account (will not echo): "
+			unset PASS
+			stty -echo
+			read PASS
+			stty echo
+			echo
+
+			ftpput -u $USER -p $PASS $HOST $FTPPATH /var/tor/keys/secret_id_key || return 2
+
+			echo
+			echo "<secret_id_key successfully exported>"
+			echo
+		fi
+	fi
+}
+
+
+NETWORK=0
+CONFIGURED=0
+
+while [ 1 ]
+do
+	echo
+	echo "* Enter \"netstart\" to (re)configure the network"
+	echo "* Enter \"gettime\" to see the current system time"
+	if [ $NETWORK -ne 0 ]
+	then
+		echo "* Enter \"settime\" to (manually) set the time to a remote host"
+		echo "* Enter \"netstatus\" to see the network status"
+		echo "* Enter \"nettest\" to test network connectivity"
+		echo "* Enter \"listening\" to see sockets listeing on the network"
+		echo "* Enter \"established\" to see sockets established on the network"
+		echo "* Enter \"torconf\" to (re)import/generate the secret_id_key/torrc"
+		if [ $CONFIGURED -ne 0 ]
+		then
+			echo "* Enter \"torstart\" to (re)start tor."
+			echo "* Enter \"torreload\" to reload torrc."
+			echo "* Enter \"torstop\" stop the tor server."
+			echo "* Enter \"torexport\" to export the secret_id_key/torrc and NOT halt the system."
+		fi
+	fi
+	echo "* Enter \"resources\" to see ram and cpu usage"
+	echo "* Enter \"reboot\" to export the secret_id_key/torrc AND reboot the system."
+	echo "* Enter \"shutdown\" to export the secret_id_key/torrc AND halt the system."
+	echo
+	echo -n "* "
+
+	unset ACTION
+	read ACTION
+
+	echo
+
+	case "$ACTION" in
+
+		netstart)
+			startnet
+			ERR=$?
+
+			echo
+
+			if [ $ERR -eq 1 ]
+			then
+				NETWORK=0
+				echo "*** FAILED ethX selection ***"
+			elif [ $ERR -eq 2 ]
+			then
+				NETWORK=0
+				echo "*** FAILED ifconfig ***"
+			elif [ $ERR -eq 3 ]
+			then
+				NETWORK=0
+				echo "*** FAILED route ***"
+			elif [ $ERR -eq 4 ]
+			then
+				NETWORK=0
+				echo "*** FAILED router ping ***"
+			elif [ $ERR -eq 5 ]
+			then
+				NETWORK=0
+				echo "*** FAILED nslookup www.google.com ***"
+			elif [ $ERR -eq 6 ]
+			then
+				NETWORK=0
+				echo "*** FAILED udhcp acquire address ***"
+			elif [ $ERR -eq 7 ]
+			then
+				NETWORK=0 
+				echo "*** FAILED establish address ***"
+			else
+				NETWORK=1
+				echo "<Network is up and running!>"
+			fi
+
+			echo
+			echo -n "Hit enter to continue: "
+			read DUMMY
+			echo
+			;;
+
+		gettime)
+			echo
+			echo -n "The time is now: "
+			date
+			echo
+			echo -n "Hit enter to continue: "
+			read DUMMY
+			echo
+			;;
+
+		settime)
+			echo
+			if [ $NETWORK -ne 0 ]
+			then
+				echo -n "Enter the hostname/IP of the date server: "
+				unset DATEHOST
+				read DATEHOST
+
+				rdate -s $DATEHOST || echo "*** ERR date was not set ***"
+			else
+				echo "*** ERR network is not up yet! ***"
+			fi
+
+			echo
+			echo -n "The time is now: "
+			date
+			echo
+			echo -n "Hit enter to continue: "
+			read DUMMY
+			echo
+			;;
+
+		netstatus)
+			echo
+
+			if [ $NETWORK -ne 0 ]
+			then
+				ifconfig | more
+				echo -n "Hit enter to continue: "
+				read DUMMY
+				echo
+				route -n | more
+				echo
+				echo -n "Hit enter to continue: "
+				read DUMMY
+				echo
+				nslookup www.google.com | more
+			else
+				echo "*** ERR network is not up yet! ***"
+			fi
+
+			echo
+			echo -n "Hit enter to continue: "
+			read DUMMY
+			echo
+			;;
+
+		nettest)
+			echo
+
+			if [ $NETWORK -ne 0 ]
+			then
+				unset RIP
+				RIP=$( route -n | grep "^0.0.0.0" | awk '{ print $2 }' )
+				ping -c 3 $RIP >/dev/null 2>&1 \
+					&& echo "OK: Router $RIP Reacheable" \
+					|| echo "ERR: Router $RIP Unreacheable"
+
+				echo
+
+				NAME=$( cat /etc/resolv.conf | grep nameserver | awk '{ print $2}' )
+				nslookup www.google.com >/dev/null 2>&1 \
+					&& echo "OK: Nameserver $NAME Working" \
+					|| echo "ERR: Nameserver $NAME NOT Working"
+
+				echo
+				echo "Do you want to ping a hostname/IP address?"
+				echo -n "Enter it or just hit return to continue: "
+				unset PING
+				read PING
+				echo
+				if [ "x$PING" != "x" ]
+				then
+					ping -c 3 $PING >/dev/null 2>&1 \
+						&& echo "OK: Host $PING Reacheable" \
+						|| echo "ERR: Host $PING Unreacheable"
+
+					echo
+					echo -n "Hit enter to continue: "
+					read DUMMY
+					echo
+				fi
+			else
+				echo "*** ERR network is not up yet! ***"
+				echo
+				echo -n "Hit enter to continue: "
+				read DUMMY
+				echo
+			fi
+
+			;;
+
+		listening)
+			echo
+
+			if [ $NETWORK -ne 0 ]
+			then
+				netstat -ntl | more
+			else
+				echo "*** ERR network is not up yet! ***"
+			fi
+
+			echo
+			echo -n "Hit enter to continue: "
+			read DUMMY
+			echo
+			;;
+
+		established)
+			echo
+
+			if [ $NETWORK -ne 0 ]
+			then
+				netstat -nt | more
+			else
+				echo "*** ERR network is not up yet! ***"
+			fi
+
+			echo
+			echo -n "Hit enter to continue: "
+			read DUMMY
+			echo
+			;;
+
+		torconf)
+			echo
+
+			if [ $NETWORK -ne 0 ]
+			then
+				importing
+				ERR=$?
+
+				echo
+
+				if [ $ERR -eq 1 ]
+				then
+					CONFIGURED=0
+					echo "*** FAILED import torrc ***"
+				elif [ $ERR -eq 2 ]
+				then
+					CONFIGURED=0
+					echo "*** FAILED no existing torrc ***"
+				elif [ $ERR -eq 3 ]
+				then
+					CONFIGURED=0
+					echo "*** FAILED import secret_id_key ***"
+				elif [ $ERR -eq 4 ]
+				then
+					CONFIGURED=0
+					echo "*** FAILED no existing secret_id_key ***"
+				else
+					CONFIGURED=1
+					echo "<Tor is configured (but not started yet)>"
+				fi
+			else
+				echo "*** ERR network is not up yet! ***"
+			fi
+
+			echo
+			echo -n "Hit enter to continue: "
+			read DUMMY
+			echo
+			;;
+
+		torstart)
+			echo
+
+			if [ $NETWORK -ne 0 -a $CONFIGURED -ne 0 ]
+			then
+				echo -n "Stoping tor ..."
+				killall tor && echo
+				echo "Starting tor ..."
+				echo
+				su -c "tor --DataDirectory /var/tor" tor
+				ERR=$?
+
+				echo
+
+				if [ $ERR -eq 1 ]
+				then
+					echo "*** FAILED tor failed to start ***"
+				else
+					echo "<Tor is up and running!>"
+				fi
+			else
+				if [ $NETWORK -eq 0 ]
+				then
+					echo "*** ERR network is not up yet! ***"
+				fi
+				if [ $CONFIGURED -eq 0 ]
+				then
+					echo "*** ERR Tor is not configured yet! ***"
+				fi
+			fi
+
+			echo
+			echo -n "Hit enter to continue: "
+			read DUMMY
+			echo
+			;;
+
+		torreload)
+			echo
+
+			if [ $NETWORK -ne 0 -a $CONFIGURED -ne 0 ]
+			then
+				echo -n "Reloading torrc ..."
+				killall -HUP tor && echo
+			else
+				if [ $NETWORK -eq 0 ]
+				then
+					echo "*** ERR network is not up yet! ***"
+				fi
+				if [ $CONFIGURED -eq 0 ]
+				then
+					echo "*** ERR Tor is not configured yet! ***"
+				fi
+			fi
+
+			echo
+			echo -n "Hit enter to continue: "
+			read DUMMY
+			echo
+			;;
+
+		torstop)
+			echo
+
+			if [ $NETWORK -ne 0 -a $CONFIGURED -ne 0 ]
+			then
+				echo -n "Stopping tor ..."
+				killall tor && echo
+			else
+				if [ $NETWORK -eq 0 ]
+				then
+					echo "*** ERR network is not up yet! ***"
+				fi
+				if [ $CONFIGURED -eq 0 ]
+				then
+					echo "*** ERR Tor is not configured yet! ***"
+				fi
+			fi
+
+			echo
+			echo -n "Hit enter to continue: "
+			read DUMMY
+			echo
+			;;
+
+		resources)
+			free
+			echo
+			echo -n "Hit enter to continue: "
+			read DUMMY
+			echo
+			uptime
+			echo
+			echo -n "Hit enter to continue: "
+			read DUMMY
+			echo
+			top
+			echo
+			echo -n "Hit enter to continue: "
+			read DUMMY
+			echo
+			;;
+
+		torexport)
+			echo
+
+			if [ $NETWORK -ne 0 -a $CONFIGURED -ne 0 ]
+			then
+				exporting
+				ERR=$?
+
+				if [ $ERR -eq 1 ]
+				then
+					echo "*** FAILED export torrc ***"
+				elif [ $ERR -eq 2 ]
+				then
+					echo "*** FAILED export secret_id_key ***"
+				else
+					echo "<secret_id_key/torrc exported>"
+				fi
+			else
+				if [ $NETWORK -eq 0 ]
+				then
+					echo "*** ERR network is not up yet! ***"
+				fi
+				if [ $CONFIGURED -eq 0 ]
+				then
+					echo "*** ERR Tor is not configured yet! ***"
+				fi
+			fi
+
+			echo
+			echo -n "Hit enter to continue: "
+			read DUMMY
+			echo
+			;;
+
+		reboot|shutdown)
+			if [ $NETWORK -ne 0 -a $CONFIGURED -ne 0 ]
+			then
+
+				echo
+				echo -n "Stopping tor ..."
+				killall tor && echo
+				echo
+
+				exporting
+				ERR=$?
+
+				echo
+
+				if [ $ERR -eq 1 ]
+				then
+					echo "*** FAILED export torrc ***"
+				elif [ $ERR -eq 2 ]
+				then
+					echo "*** FAILED export secret_id_key ***"
+				else
+					if [ "x$ACTION" == "xreboot" ]
+					then
+						reboot
+					else
+						halt
+					fi
+				fi
+
+				echo
+
+			else
+
+				if [ "x$ACTION" == "xreboot" ]
+				then
+					reboot
+				else
+					halt
+				fi
+
+			fi
+			;;
+
+		*)
+			echo
+			echo "Unknown command $ACTION"
+			echo
+			;;
+	esac
+
+done
+
+

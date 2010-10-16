@@ -1,7 +1,7 @@
 #!/bin/sh
 
 RELEASE=testing
-#DEBUG=yes
+DEBUG=yes
 
 BUSYBOX=busybox-1.17.2
 TOR=tor-0.2.1.26

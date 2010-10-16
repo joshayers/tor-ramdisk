@@ -152,7 +152,7 @@ importing()
 	echo "*** IMPORTING/GENERATING TORRC *** "
 	echo 
 	echo "Do you want to import a torrc or generate one?"
-	echo "Note: only FTP and SFTP are supported"
+	echo "NOTE: only FTP and SFTP are supported"
 	echo
 	echo -n "Enter IMPORT or GENERATE (all upper case): "
 	if [ -f /etc/tor/torrc ]
@@ -197,11 +197,12 @@ importing()
 			echo
 
 			ftpget -u $USER -p $PASS $HOST /etc/tor/torrc $FTPPATH || return 1
+
 		elif [ "x$FTP" == "xSFTP" ] 
 		then
 			scp $USER@$HOST:$FTPPATH /etc/tor/torrc || return 1
 		else
-			echo "Please specify whether you want to use STATIC or DYNAMIC ip assignment."
+			echo "Please specify whether you want to use FTP or SFTP."
 			return 1
 		fi
 
@@ -292,7 +293,7 @@ importing()
 	echo 
 
 	echo "Do you want to import a secret key or generate one?"
-	echo "NOTE: Only ftp supported at present"
+	echo "NOTE: Only FTP and SFTP are supported"
 	echo
 	echo -n "Enter IMPORT or GENERATE (all upper case): "
 	if [ -f /var/tor/keys/secret_id_key ]
@@ -383,7 +384,7 @@ exporting()
 	echo "*** EXPORTING TORRC *** "
 	echo 
 	echo "Do you want to export your torrc?"
-	echo "NOTE: Only ftp supported at present"
+	echo "NOTE: Only FTP and SFTP are supported"
 	echo "Enter EXPORT (all upper case) if you do"
 	echo -n "or just hit enter if you don't: "
 	unset EXPORTTORRC
@@ -398,6 +399,10 @@ exporting()
 			echo "Exporting torrc ..."
 			echo
 
+			echo -n "Enter FTP or SFTP (all upper case):"
+			unset FTP
+			read FTP
+
 			echo -n "Enter the hostname/IP of the FTP server: "
 			unset HOST
 			read HOST
@@ -410,14 +415,24 @@ exporting()
 			unset USER
 			read USER
 
-			echo -n "Enter the password of the FTP account (will not echo): "
-			unset PASS
-			stty -echo
-			read PASS
-			stty echo
-			echo
+			if [ "x$FTP" == "xFTP" ]
+			then
+				echo -n "Enter the password of the FTP account (will not echo): "
+				unset PASS
+				stty -echo
+				read PASS
+				stty echo
+				echo
 
-			ftpput -u $USER -p $PASS $HOST $FTPPATH /etc/tor/torrc || return 1
+				ftpput -u $USER -p $PASS $HOST $FTPPATH /etc/tor/torrc || return 1
+
+			elif [ "x$FTP" == "xSFTP" ]
+			then
+				scp /etc/tor/torrc $USER@$HOST:$FTPPATH || return 1
+			else
+				echo "Please specify whether you want to use FTP or SFTP."
+				return 1
+			fi
 
 			echo
 			echo "<torrc successfully exported>"
@@ -430,7 +445,7 @@ exporting()
 	echo "*** EXPORTING SECRET KEY  *** "
 	echo 
 	echo "Do you want to export your secret_id_key?"
-	echo "NOTE: Only ftp supported at present"
+	echo "NOTE: Only FTP and SFTP are supported"
 	echo "Enter EXPORT (all upper case) if you do"
 	echo -n "or just hit enter if you don't: "
 	unset EXPORTSSL
@@ -457,14 +472,24 @@ exporting()
 			unset USER
 			read USER
 
-			echo -n "Enter the password of the FTP account (will not echo): "
-			unset PASS
-			stty -echo
-			read PASS
-			stty echo
-			echo
+			if [ "x$FTP" == "xFTP" ]
+			then
+				echo -n "Enter the password of the FTP account (will not echo): "
+				unset PASS
+				stty -echo
+				read PASS
+				stty echo
+				echo
 
-			ftpput -u $USER -p $PASS $HOST $FTPPATH /var/tor/keys/secret_id_key || return 2
+				ftpput -u $USER -p $PASS $HOST $FTPPATH /var/tor/keys/secret_id_key || return 2
+
+			elif [ "x$FTP" == "xSFTP" ]
+			then
+				scp /var/tor/keys/secret_id_key $USER@$HOST:$FTPPATH || return 2
+			else
+				echo "Please specify whether you want to use FTP or SFTP."
+				return 2
+			fi
 
 			echo
 			echo "<secret_id_key successfully exported>"

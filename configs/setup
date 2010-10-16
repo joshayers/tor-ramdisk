@@ -152,7 +152,7 @@ importing()
 	echo "*** IMPORTING/GENERATING TORRC *** "
 	echo 
 	echo "Do you want to import a torrc or generate one?"
-	echo "NOTE: Only ftp supported at present"
+	echo "Note: only FTP and SFTP are supported"
 	echo
 	echo -n "Enter IMPORT or GENERATE (all upper case): "
 	if [ -f /etc/tor/torrc ]
@@ -171,26 +171,39 @@ importing()
 		echo "Importing torrc ..."
 		echo
 
-		echo -n "Enter the hostname/IP of the FTP server: "
+		echo -n "Enter FTP or SFTP (all upper case):"
+		unset FTP
+		read FTP
+
+		echo -n "Enter the hostname/IP of the (S)FTP server: "
 		unset HOST
 		read HOST
 	
-		echo -n "Enter the remote path of torrc (eg. pub/torrc ): "
+		echo -n "Enter the remote path of torrc (eg. ~/torrc ): "
 		unset FTPPATH
 		read FTPPATH
 
-		echo -n "Enter the username (or anonymous) of the FTP account: "
+		echo -n "Enter the username (or anonymous) of the (S)FTP account: "
 		unset USER
 		read USER
 
-		echo -n "Enter the password of the FTP account (will not echo): "
-		unset PASS
-		stty -echo
-		read PASS
-		stty echo
-		echo
+		if [ "x$FTP" == "xFTP" ]
+		then
+			echo -n "Enter the password of the FTP account (will not echo): "
+			unset PASS
+			stty -echo
+			read PASS
+			stty echo
+			echo
 
-		ftpget -u $USER -p $PASS $HOST /etc/tor/torrc $FTPPATH || return 1
+			ftpget -u $USER -p $PASS $HOST /etc/tor/torrc $FTPPATH || return 1
+		elif [ "x$FTP" == "xSFTP" ] 
+		then
+			scp $USER@$HOST:$FTPPATH /etc/tor/torrc || return 1
+		else
+			echo "Please specify whether you want to use STATIC or DYNAMIC ip assignment."
+			return 1
+		fi
 
 		echo
 		echo "<torrc successfully imported>"
@@ -298,6 +311,10 @@ importing()
 		echo "Importing secret key ..."
 		echo
 
+		echo -n "Enter FTP or SFTP (all upper case):"
+		unset FTP
+		read FTP
+
 		echo -n "Enter the hostname/IP of the FTP server: "
 		unset HOST
 		read HOST
@@ -310,14 +327,25 @@ importing()
 		unset USER
 		read USER
 
-		echo -n "Enter the password of the FTP account (will not echo): "
-		unset PASS
-		stty -echo
-		read PASS
-		stty echo
-		echo
+		if [ "x$FTP" == "xFTP" ]
+		then
+			echo -n "Enter the password of the FTP account (will not echo): "
+			unset PASS
+			stty -echo
+			read PASS
+			stty echo
+			echo
 
-		ftpget -u $USER -p $PASS $HOST /var/tor/keys/secret_id_key $FTPPATH || return 3
+			ftpget -u $USER -p $PASS $HOST /var/tor/keys/secret_id_key $FTPPATH || return 3
+
+		elif [ "x$FTP" == "xSFTP" ] 
+		then
+			scp $USER@$HOST:$FTPPATH /var/tor/keys/secret_id_key || return 3
+		else
+			echo "Please specify whether you want to use STATIC or DYNAMIC ip assignment."
+			return 3
+		fi
+
 		chown tor:tor /var/tor/keys/secret_id_key
 		chmod 600 /var/tor/keys/secret_id_key
 

@@ -6,6 +6,7 @@ RELEASE=testing
 BUSYBOX=busybox-1.17.2
 TOR=tor-0.2.1.26
 NTPD=openntpd-3.9p1
+DROPBEAR=dropbear-0.52
 
 KVERSION=2.6.32
 LINUX=linux-2.6.32.23
@@ -57,6 +58,7 @@ get_sources()
 	[ ! -f $NTPD.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenNTPD/$NTPD.tar.gz
 	[ ! -f $LINUX.tar.bz2 ] && wget http://www.kernel.org/pub/linux/kernel/v2.6/$LINUX.tar.bz2
 	[ ! -f $PATCHES.tar.bz2 ] && wget http://cheshire.dyc.edu/pub/gentoo/distfiles/$PATCHES.tar.bz2 
+	[ ! -f $DROPBEAR.tar.gz ] && wget http://matt.ucc.asn.au/dropbear/$DROPBEAR.tar.gz
 }
 
 ################################################################################
@@ -64,6 +66,7 @@ get_sources()
 build_busybox()
 {
 	cd $WORKING
+	[ -f $BUSYBOX/busybox ] && return 0
 	tar jxvf $WORKING/../sources/$BUSYBOX.tar.bz2
 	cd $BUSYBOX
 	if [ "x$DEBUG" == "xyes" ] ; then
@@ -79,9 +82,11 @@ build_busybox()
 build_tor()
 {
 	cd $WORKING
+	[ -f $TOR/src/or/tor ] && return 0
 	tar zxvf $WORKING/../sources/$TOR.tar.gz
 	cd $TOR
-	CFLAGS="-static" ./configure --prefix=
+	./configure --prefix=
+	sed -i 's/^CFLAGS =/CFLAGS = -static/' src/or/Makefile
 	make
 	strip src/or/tor
 }
@@ -91,6 +96,7 @@ build_tor()
 build_ntpd()
 {
 	cd $WORKING
+	[ -f $NTPD/ntpd ] && return 0
 	tar zxvf $WORKING/../sources/$NTPD.tar.gz
 	cd $NTPD
 	sed -i '/NTPD_USER/s:_ntp:ntp:' ntpd.h
@@ -101,9 +107,23 @@ build_ntpd()
 
 ################################################################################
 
+build_dropbear()
+{
+	cd $WORKING
+	[ -f $DROPBEAR/scp ] && return 0
+	tar zxvf $WORKING/../sources/$DROPBEAR.tar.gz
+	cd $DROPBEAR
+	./configure --prefix=
+	STATIC=1 PROGRAMS="dbclient scp" make
+	strip scp
+}
+
+################################################################################
+
 prepare_initramfs()
 {
 	cd $WORKING
+	rm -rf initramfs
 	mkdir initramfs
 	cd $WORKING/initramfs
 	mkdir -p bin dev etc/tor proc tmp usr var/empty var/tor/keys
@@ -123,6 +143,7 @@ populate_bin()
 	cp $WORKING/$BUSYBOX/busybox .
 	cp $WORKING/$TOR/src/or/tor .
 	cp $WORKING/$NTPD/ntpd .
+	cp $WORKING/$DROPBEAR/scp .
 	cp $WORKING/../configs/setup .
 	chmod 755 setup
 
@@ -291,6 +312,7 @@ finish_initramfs()
 compile_kernel()
 {
 	cd $WORKING
+	[ -f $LINUX/arch/i386/boot/bzImage ] && return 0
 	tar jxvf ../sources/$LINUX.tar.bz2
 	tar jxvf ../sources/$PATCHES.tar.bz2 
 	cd $LINUX
@@ -333,13 +355,14 @@ EOF
 
 ################################################################################
 
-clean_start
+[[ $CLEAN == 1 ]] && clean_start
 start_build
 get_configs
 get_sources
 build_busybox
 build_tor
 build_ntpd
+build_dropbear
 prepare_initramfs
 populate_bin
 populate_etc

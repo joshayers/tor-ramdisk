@@ -110,11 +110,12 @@ build_ntpd()
 build_dropbear()
 {
 	cd $WORKING
-	[ -f $DROPBEAR/scp ] && return 0
+	[ -f $DROPBEAR/dbclient -a -f $DROPBEAR/scp ] && return 0
 	tar zxvf $WORKING/../sources/$DROPBEAR.tar.gz
 	cd $DROPBEAR
 	./configure --prefix=
 	STATIC=1 PROGRAMS="dbclient scp" make
+	strip dbclient
 	strip scp
 }
 
@@ -143,6 +144,7 @@ populate_bin()
 	cp $WORKING/$BUSYBOX/busybox .
 	cp $WORKING/$TOR/src/or/tor .
 	cp $WORKING/$NTPD/ntpd .
+	cp $WORKING/$DROPBEAR/dbclient .
 	cp $WORKING/$DROPBEAR/scp .
 	cp $WORKING/../configs/setup .
 	chmod 755 setup

@@ -316,7 +316,7 @@ importing()
 		unset FTP
 		read FTP
 
-		echo -n "Enter the hostname/IP of the FTP server: "
+		echo -n "Enter the hostname/IP of the (S)FTP server: "
 		unset HOST
 		read HOST
 	
@@ -324,7 +324,7 @@ importing()
 		unset FTPPATH
 		read FTPPATH
 
-		echo -n "Enter the username (or anonymous) of the FTP account: "
+		echo -n "Enter the username (or anonymous) of the (S)FTP account: "
 		unset USER
 		read USER
 

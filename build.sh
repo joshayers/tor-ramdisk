@@ -1,12 +1,12 @@
 #!/bin/sh
 
 RELEASE=testing
-DEBUG=yes
+#DEBUG=yes
 
 BUSYBOX=busybox-1.17.2
 TOR=tor-0.2.1.26
 NTPD=openntpd-3.9p1
-DROPBEAR=dropbear-0.52
+OPENSSH=openssh-5.6p1
 
 KVERSION=2.6.32
 LINUX=linux-2.6.32.23
@@ -58,7 +58,7 @@ get_sources()
 	[ ! -f $NTPD.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenNTPD/$NTPD.tar.gz
 	[ ! -f $LINUX.tar.bz2 ] && wget http://www.kernel.org/pub/linux/kernel/v2.6/$LINUX.tar.bz2
 	[ ! -f $PATCHES.tar.bz2 ] && wget http://cheshire.dyc.edu/pub/gentoo/distfiles/$PATCHES.tar.bz2 
-	[ ! -f $DROPBEAR.tar.gz ] && wget http://matt.ucc.asn.au/dropbear/$DROPBEAR.tar.gz
+	[ ! -f $OPENSSH.tar.gz ] && wget http://openbsd.org.ar/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
 }
 
 ################################################################################
@@ -107,15 +107,15 @@ build_ntpd()
 
 ################################################################################
 
-build_dropbear()
+build_openssh()
 {
 	cd $WORKING
-	[ -f $DROPBEAR/dbclient -a -f $DROPBEAR/scp ] && return 0
-	tar zxvf $WORKING/../sources/$DROPBEAR.tar.gz
-	cd $DROPBEAR
-	./configure --prefix=
-	STATIC=1 PROGRAMS="dbclient scp" make
-	strip dbclient
+	[ -f $OPENSSH/scp ] && return 0
+	tar zxvf $WORKING/../sources/$OPENSSH.tar.gz
+	cd $OPENSSH
+	./configure
+	sed -i -e 's/^LDFLAGS=/LDFLAGS=-static /' Makefile
+	make
 	strip scp
 }
 
@@ -144,8 +144,7 @@ populate_bin()
 	cp $WORKING/$BUSYBOX/busybox .
 	cp $WORKING/$TOR/src/or/tor .
 	cp $WORKING/$NTPD/ntpd .
-	cp $WORKING/$DROPBEAR/dbclient .
-	cp $WORKING/$DROPBEAR/scp .
+	cp $WORKING/$OPENSSH/scp .
 	cp $WORKING/../configs/setup .
 	chmod 755 setup
 
@@ -322,7 +321,7 @@ compile_kernel()
 
 	cd $WORKING/$LINUX
 	cp $WORKING/../configs/kernel-$KVERSION.config .config
-	make
+	ARCH="x86" make
 }
 
 ################################################################################
@@ -364,7 +363,7 @@ get_sources
 build_busybox
 build_tor
 build_ntpd
-build_dropbear
+build_openssh
 prepare_initramfs
 populate_bin
 populate_etc

@@ -1,4 +1,4 @@
-#!/bin/ash
+#!/bin/sh
 
 trap ctrl_c INT
 
@@ -58,7 +58,7 @@ startnet()
 	killall -9 udhcpc 2>/dev/null
 	echo -n > /etc/resolv.conf
 
-	if [ "x$STATDYN" == "xSTATIC" ]
+	if [ "x$STATDYN" = "xSTATIC" ]
 	then
 
 	########################################################################
@@ -72,7 +72,7 @@ startnet()
 		unset MASK
 		read MASK
 
-		if [ "x$MASK" == "x" ]
+		if [ "x$MASK" = "x" ]
 		then
 			ifconfig $ETH $SIP >/dev/null 2>&1 || return 2
 		else
@@ -99,7 +99,7 @@ startnet()
 
 	#########################################################################
 
-	elif [ "x$STATDYN" == "xDYNAMIC" ]
+	elif [ "x$STATDYN" = "xDYNAMIC" ]
 	then
 
 		echo
@@ -109,7 +109,7 @@ startnet()
 		read DNS
 
 
-		if [ "x$DNS" == "xYES" ]
+		if [ "x$DNS" = "xYES" ]
 		then
 			ifconfig $ETH up
 			udhcpc -i $ETH -s /etc/udhcpc.nodns 2>&1 || return 6
@@ -165,7 +165,7 @@ importing()
 	unset IMPORTTORRC
 	read IMPORTTORRC
 
-	if [ "x$IMPORTTORRC" == "xIMPORT" ]
+	if [ "x$IMPORTTORRC" = "xIMPORT" ]
 	then
 
 		echo "Importing torrc ..."
@@ -187,7 +187,7 @@ importing()
 		unset USER
 		read USER
 
-		if [ "x$FTP" == "xFTP" ]
+		if [ "x$FTP" = "xFTP" ]
 		then
 			echo -n "Enter the password of the FTP account (will not echo): "
 			unset PASS
@@ -198,7 +198,7 @@ importing()
 
 			ftpget -u $USER -p $PASS $HOST /etc/tor/torrc $FTPPATH || return 1
 
-		elif [ "x$FTP" == "xSCP" ] 
+		elif [ "x$FTP" = "xSCP" ] 
 		then
 			scp $USER@$HOST:$FTPPATH /etc/tor/torrc || return 1
 		else
@@ -210,7 +210,7 @@ importing()
 		echo "<torrc successfully imported>"
 		echo
 
-	elif [ "x$IMPORTTORRC" == "xGENERATE" ]
+	elif [ "x$IMPORTTORRC" = "xGENERATE" ]
 	then
 
 		echo "Generating a new torrc ..."
@@ -244,7 +244,7 @@ importing()
 		unset DIRECTORY
 		read DIRECTORY
 
-		if [ "x$DIRECTORY" == "xDIRECTORY" ]
+		if [ "x$DIRECTORY" = "xDIRECTORY" ]
 		then
 			echo "DirPort 9030" >> /etc/tor/torrc
 		fi
@@ -281,7 +281,7 @@ importing()
 	unset EDIT
 	read EDIT
 
-	if [ "x$EDIT" == "xEDIT" ]
+	if [ "x$EDIT" = "xEDIT" ]
 	then
 		vi /etc/tor/torrc
 	fi
@@ -306,7 +306,7 @@ importing()
 	unset IMPORTSSL
 	read IMPORTSSL
 
-	if [ "x$IMPORTSSL" == "xIMPORT" ]
+	if [ "x$IMPORTSSL" = "xIMPORT" ]
 	then
 
 		echo "Importing secret key ..."
@@ -328,7 +328,7 @@ importing()
 		unset USER
 		read USER
 
-		if [ "x$FTP" == "xFTP" ]
+		if [ "x$FTP" = "xFTP" ]
 		then
 			echo -n "Enter the password of the FTP account (will not echo): "
 			unset PASS
@@ -339,7 +339,7 @@ importing()
 
 			ftpget -u $USER -p $PASS $HOST /var/tor/keys/secret_id_key $FTPPATH || return 3
 
-		elif [ "x$FTP" == "xSCP" ] 
+		elif [ "x$FTP" = "xSCP" ] 
 		then
 			scp $USER@$HOST:$FTPPATH /var/tor/keys/secret_id_key || return 3
 		else
@@ -354,7 +354,7 @@ importing()
 		echo "<secret_id_key successfully imported>"
 		echo
 
-	elif [ "x$IMPORTSSL" == "xGENERATE" ]
+	elif [ "x$IMPORTSSL" = "xGENERATE" ]
 	then
 
 		rm -f /var/tor/keys/secret_id_key
@@ -390,7 +390,7 @@ exporting()
 	unset EXPORTTORRC
 	read EXPORTTORRC
 
-	if [ "x$EXPORTTORRC" == "xEXPORT" ]
+	if [ "x$EXPORTTORRC" = "xEXPORT" ]
 	then
 		if [ ! -f /etc/tor/torrc ]
 		then
@@ -415,7 +415,7 @@ exporting()
 			unset USER
 			read USER
 
-			if [ "x$FTP" == "xFTP" ]
+			if [ "x$FTP" = "xFTP" ]
 			then
 				echo -n "Enter the password of the FTP account (will not echo): "
 				unset PASS
@@ -426,7 +426,7 @@ exporting()
 
 				ftpput -u $USER -p $PASS $HOST $FTPPATH /etc/tor/torrc || return 1
 
-			elif [ "x$FTP" == "xSCP" ]
+			elif [ "x$FTP" = "xSCP" ]
 			then
 				scp /etc/tor/torrc $USER@$HOST:$FTPPATH || return 1
 			else
@@ -451,7 +451,7 @@ exporting()
 	unset EXPORTSSL
 	read EXPORTSSL
 
-	if [ "x$EXPORTSSL" == "xEXPORT" ]
+	if [ "x$EXPORTSSL" = "xEXPORT" ]
 	then
 		if [ ! -f /var/tor/keys/secret_id_key ]
 		then
@@ -472,7 +472,7 @@ exporting()
 			unset USER
 			read USER
 
-			if [ "x$FTP" == "xFTP" ]
+			if [ "x$FTP" = "xFTP" ]
 			then
 				echo -n "Enter the password of the FTP account (will not echo): "
 				unset PASS
@@ -483,7 +483,7 @@ exporting()
 
 				ftpput -u $USER -p $PASS $HOST $FTPPATH /var/tor/keys/secret_id_key || return 2
 
-			elif [ "x$FTP" == "xSCP" ]
+			elif [ "x$FTP" = "xSCP" ]
 			then
 				scp /var/tor/keys/secret_id_key $USER@$HOST:$FTPPATH || return 2
 			else
@@ -913,7 +913,7 @@ do
 				then
 					echo "*** FAILED export secret_id_key ***"
 				else
-					if [ "x$ACTION" == "xreboot" ]
+					if [ "x$ACTION" = "xreboot" ]
 					then
 						reboot
 					else
@@ -925,7 +925,7 @@ do
 
 			else
 
-				if [ "x$ACTION" == "xreboot" ]
+				if [ "x$ACTION" = "xreboot" ]
 				then
 					reboot
 				else

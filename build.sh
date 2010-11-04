@@ -120,12 +120,13 @@ build_scp()
 {
 	cd $WORKING
 	if [ "x$USEOPENSSH" = "xyes" ] ; then
-		[ -f $OPENSSH/scp ] && return 0
+		[ -f $OPENSSH/ssh -a -f $OPENSSH/scp ] && return 0
 		tar zxvf $WORKING/../sources/$OPENSSH.tar.gz
 		cd $OPENSSH
-		./configure
+		./configure --prefix=
 		sed -i -e 's/^LDFLAGS=/LDFLAGS=-static /' Makefile
 		make
+		strip ssh
 		strip scp
 	else
 		[ -f $DROPBEAR/dbclient -a -f $DROPBEAR/scp ] && return 0
@@ -164,6 +165,7 @@ populate_bin()
 	cp $WORKING/$TOR/src/or/tor .
 	cp $WORKING/$NTPD/ntpd .
 	if [ "x$USEOPENSSH" = "xyes" ] ; then
+		cp $WORKING/$OPENSSH/ssh .
 		cp $WORKING/$OPENSSH/scp .
 	else
 		cp $WORKING/$DROPBEAR/dbclient .

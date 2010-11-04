@@ -152,7 +152,7 @@ importing()
 	echo "*** IMPORTING/GENERATING TORRC *** "
 	echo 
 	echo "Do you want to import a torrc or generate one?"
-	echo "NOTE: only FTP and SFTP are supported"
+	echo "NOTE: only FTP and SCP are supported"
 	echo
 	echo -n "Enter IMPORT or GENERATE (all upper case): "
 	if [ -f /etc/tor/torrc ]
@@ -171,11 +171,11 @@ importing()
 		echo "Importing torrc ..."
 		echo
 
-		echo -n "Enter FTP or SFTP (all upper case):"
+		echo -n "Enter FTP or SCP (all upper case):"
 		unset FTP
 		read FTP
 
-		echo -n "Enter the hostname/IP of the (S)FTP server: "
+		echo -n "Enter the hostname/IP of the FTP/SSH server: "
 		unset HOST
 		read HOST
 	
@@ -183,7 +183,7 @@ importing()
 		unset FTPPATH
 		read FTPPATH
 
-		echo -n "Enter the username (or anonymous) of the (S)FTP account: "
+		echo -n "Enter the username (or anonymous) of the FTP/SSH account: "
 		unset USER
 		read USER
 
@@ -198,11 +198,11 @@ importing()
 
 			ftpget -u $USER -p $PASS $HOST /etc/tor/torrc $FTPPATH || return 1
 
-		elif [ "x$FTP" == "xSFTP" ] 
+		elif [ "x$FTP" == "xSCP" ] 
 		then
 			scp $USER@$HOST:$FTPPATH /etc/tor/torrc || return 1
 		else
-			echo "Please specify whether you want to use FTP or SFTP."
+			echo "Please specify whether you want to use FTP or SCP."
 			return 1
 		fi
 
@@ -293,7 +293,7 @@ importing()
 	echo 
 
 	echo "Do you want to import a secret key or generate one?"
-	echo "NOTE: Only FTP and SFTP are supported"
+	echo "NOTE: Only FTP and SCP are supported"
 	echo
 	echo -n "Enter IMPORT or GENERATE (all upper case): "
 	if [ -f /var/tor/keys/secret_id_key ]
@@ -312,11 +312,11 @@ importing()
 		echo "Importing secret key ..."
 		echo
 
-		echo -n "Enter FTP or SFTP (all upper case):"
+		echo -n "Enter FTP or SCP (all upper case):"
 		unset FTP
 		read FTP
 
-		echo -n "Enter the hostname/IP of the (S)FTP server: "
+		echo -n "Enter the hostname/IP of the FTP/SSH server: "
 		unset HOST
 		read HOST
 	
@@ -324,7 +324,7 @@ importing()
 		unset FTPPATH
 		read FTPPATH
 
-		echo -n "Enter the username (or anonymous) of the (S)FTP account: "
+		echo -n "Enter the username (or anonymous) of the FTP/SSH account: "
 		unset USER
 		read USER
 
@@ -339,7 +339,7 @@ importing()
 
 			ftpget -u $USER -p $PASS $HOST /var/tor/keys/secret_id_key $FTPPATH || return 3
 
-		elif [ "x$FTP" == "xSFTP" ] 
+		elif [ "x$FTP" == "xSCP" ] 
 		then
 			scp $USER@$HOST:$FTPPATH /var/tor/keys/secret_id_key || return 3
 		else
@@ -384,7 +384,7 @@ exporting()
 	echo "*** EXPORTING TORRC *** "
 	echo 
 	echo "Do you want to export your torrc?"
-	echo "NOTE: Only FTP and SFTP are supported"
+	echo "NOTE: Only FTP and SCP are supported"
 	echo "Enter EXPORT (all upper case) if you do"
 	echo -n "or just hit enter if you don't: "
 	unset EXPORTTORRC
@@ -399,7 +399,7 @@ exporting()
 			echo "Exporting torrc ..."
 			echo
 
-			echo -n "Enter FTP or SFTP (all upper case):"
+			echo -n "Enter FTP or SCP (all upper case):"
 			unset FTP
 			read FTP
 
@@ -426,11 +426,11 @@ exporting()
 
 				ftpput -u $USER -p $PASS $HOST $FTPPATH /etc/tor/torrc || return 1
 
-			elif [ "x$FTP" == "xSFTP" ]
+			elif [ "x$FTP" == "xSCP" ]
 			then
 				scp /etc/tor/torrc $USER@$HOST:$FTPPATH || return 1
 			else
-				echo "Please specify whether you want to use FTP or SFTP."
+				echo "Please specify whether you want to use FTP or SCP."
 				return 1
 			fi
 
@@ -445,7 +445,7 @@ exporting()
 	echo "*** EXPORTING SECRET KEY  *** "
 	echo 
 	echo "Do you want to export your secret_id_key?"
-	echo "NOTE: Only FTP and SFTP are supported"
+	echo "NOTE: Only FTP and SCP are supported"
 	echo "Enter EXPORT (all upper case) if you do"
 	echo -n "or just hit enter if you don't: "
 	unset EXPORTSSL
@@ -483,11 +483,11 @@ exporting()
 
 				ftpput -u $USER -p $PASS $HOST $FTPPATH /var/tor/keys/secret_id_key || return 2
 
-			elif [ "x$FTP" == "xSFTP" ]
+			elif [ "x$FTP" == "xSCP" ]
 			then
 				scp /var/tor/keys/secret_id_key $USER@$HOST:$FTPPATH || return 2
 			else
-				echo "Please specify whether you want to use FTP or SFTP."
+				echo "Please specify whether you want to use FTP or SCP."
 				return 2
 			fi
 

@@ -179,7 +179,7 @@ importing()
 		unset HOST
 		read HOST
 	
-		echo -n "Enter the remote path of torrc (eg. ~/torrc ): "
+		echo -n "Enter the remote path of torrc (eg. pub/torrc ): "
 		unset FTPPATH
 		read FTPPATH
 

@@ -7,10 +7,10 @@ BUSYBOX=busybox-1.17.2
 TOR=tor-0.2.1.26
 NTPD=openntpd-3.9p1
 
-if [ "x$USEOPENSSH" = "xyes" ] ; then
-	OPENSSH=openssh-5.6p1
-else
+if [ "x$USEDROPBEAR" = "xyes" ] ; then
 	DROPBEAR=dropbear-0.52
+else
+	OPENSSH=openssh-5.6p1
 fi
 
 KVERSION=2.6.32
@@ -63,10 +63,10 @@ get_sources()
 	[ ! -f $NTPD.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenNTPD/$NTPD.tar.gz
 	[ ! -f $LINUX.tar.bz2 ] && wget http://www.kernel.org/pub/linux/kernel/v2.6/$LINUX.tar.bz2
 	[ ! -f $PATCHES.tar.bz2 ] && wget http://cheshire.dyc.edu/pub/gentoo/distfiles/$PATCHES.tar.bz2 
-	if [ "x$USEOPENSSH" = "xyes" ] ; then
-		[ ! -f $OPENSSH.tar.gz ] && wget http://openbsd.org.ar/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
-	else
+	if [ "x$USEDROPBEAR" = "xyes" ] ; then
 		[ ! -f $DROPBEAR.tar.gz ] && wget http://matt.ucc.asn.au/dropbear/$DROPBEAR.tar.gz
+	else
+		[ ! -f $OPENSSH.tar.gz ] && wget http://openbsd.org/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
 	fi
 }
 
@@ -119,7 +119,15 @@ build_ntpd()
 build_scp()
 {
 	cd $WORKING
-	if [ "x$USEOPENSSH" = "xyes" ] ; then
+	if [ "x$USEDROPBEAR" = "xyes" ] ; then
+		[ -f $DROPBEAR/dbclient -a -f $DROPBEAR/scp ] && return 0
+		tar zxvf $WORKING/../sources/$DROPBEAR.tar.gz
+		cd $DROPBEAR
+		./configure --prefix=
+		STATIC=1 PROGRAMS="dbclient scp" make
+		strip dbclient
+		strip scp
+	else
 		[ -f $OPENSSH/ssh -a -f $OPENSSH/scp ] && return 0
 		tar zxvf $WORKING/../sources/$OPENSSH.tar.gz
 		cd $OPENSSH
@@ -127,14 +135,6 @@ build_scp()
 		sed -i -e 's/^LDFLAGS=/LDFLAGS=-static /' Makefile
 		make
 		strip ssh
-		strip scp
-	else
-		[ -f $DROPBEAR/dbclient -a -f $DROPBEAR/scp ] && return 0
-		tar zxvf $WORKING/../sources/$DROPBEAR.tar.gz
-		cd $DROPBEAR
-		./configure --prefix=
-		STATIC=1 PROGRAMS="dbclient scp" make
-		strip dbclient
 		strip scp
 	fi
 }
@@ -164,12 +164,12 @@ populate_bin()
 	cp $WORKING/$BUSYBOX/busybox .
 	cp $WORKING/$TOR/src/or/tor .
 	cp $WORKING/$NTPD/ntpd .
-	if [ "x$USEOPENSSH" = "xyes" ] ; then
-		cp $WORKING/$OPENSSH/ssh .
-		cp $WORKING/$OPENSSH/scp .
-	else
+	if [ "x$USEDROPBEAR" = "xyes" ] ; then
 		cp $WORKING/$DROPBEAR/dbclient .
 		cp $WORKING/$DROPBEAR/scp .
+	else
+		cp $WORKING/$OPENSSH/ssh .
+		cp $WORKING/$OPENSSH/scp .
 	fi
 	cp $WORKING/../configs/setup .
 	chmod 755 setup

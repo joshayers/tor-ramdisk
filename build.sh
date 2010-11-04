@@ -7,7 +7,7 @@ BUSYBOX=busybox-1.17.2
 TOR=tor-0.2.1.26
 NTPD=openntpd-3.9p1
 
-if [[ $USEOPENSSH == 1 ]] ; then
+if [ "x$USEOPENSSH" = "xyes" ] ; then
 	OPENSSH=openssh-5.6p1
 else
 	DROPBEAR=dropbear-0.52
@@ -41,7 +41,7 @@ get_configs()
 	mkdir -p configs
 	cd configs
 
-	if [ "x$DEBUG" == "xyes" ] ; then
+	if [ "x$DEBUG" = "xyes" ] ; then
 		[ ! -f $BUSYBOX.debug.config ] && echo "Missing busybox config" && exit
 	else
 		[ ! -f $BUSYBOX.config ] && echo "Missing busybox config" && exit
@@ -63,7 +63,7 @@ get_sources()
 	[ ! -f $NTPD.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenNTPD/$NTPD.tar.gz
 	[ ! -f $LINUX.tar.bz2 ] && wget http://www.kernel.org/pub/linux/kernel/v2.6/$LINUX.tar.bz2
 	[ ! -f $PATCHES.tar.bz2 ] && wget http://cheshire.dyc.edu/pub/gentoo/distfiles/$PATCHES.tar.bz2 
-	if [[ $USEOPENSSH == 1 ]] ; then
+	if [ "x$USEOPENSSH" = "xyes" ] ; then
 		[ ! -f $OPENSSH.tar.gz ] && wget http://openbsd.org.ar/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
 	else
 		[ ! -f $DROPBEAR.tar.gz ] && wget http://matt.ucc.asn.au/dropbear/$DROPBEAR.tar.gz
@@ -78,7 +78,7 @@ build_busybox()
 	[ -f $BUSYBOX/busybox ] && return 0
 	tar jxvf $WORKING/../sources/$BUSYBOX.tar.bz2
 	cd $BUSYBOX
-	if [ "x$DEBUG" == "xyes" ] ; then
+	if [ "x$DEBUG" = "xyes" ] ; then
 		cp $WORKING/../configs/$BUSYBOX.debug.config .config
 	else
 		cp $WORKING/../configs/$BUSYBOX.config .config
@@ -119,7 +119,7 @@ build_ntpd()
 build_scp()
 {
 	cd $WORKING
-	if [ $USEOPENSSH == "1" ] ; then
+	if [ "x$USEOPENSSH" = "xyes" ] ; then
 		[ -f $OPENSSH/scp ] && return 0
 		tar zxvf $WORKING/../sources/$OPENSSH.tar.gz
 		cd $OPENSSH
@@ -163,7 +163,12 @@ populate_bin()
 	cp $WORKING/$BUSYBOX/busybox .
 	cp $WORKING/$TOR/src/or/tor .
 	cp $WORKING/$NTPD/ntpd .
-	cp $WORKING/$OPENSSH/scp .
+	if [ "x$USEOPENSSH" = "xyes" ] ; then
+		cp $WORKING/$OPENSSH/scp .
+	else
+		cp $WORKING/$DROPBEAR/dbclient .
+		cp $WORKING/$DROPBEAR/scp .
+	fi
 	cp $WORKING/../configs/setup .
 	chmod 755 setup
 
@@ -185,7 +190,7 @@ cat << EOF > fstab
 none          /proc       proc    defaults   0 0
 EOF
 
-if [ "x$DEBUG" == "xyes" ] ; then
+if [ "x$DEBUG" = "xyes" ] ; then
 cat << EOF > inittab
 ::sysinit:/etc/rcS
 tty1::respawn:/bin/setup
@@ -364,7 +369,7 @@ EOF
 
 	mkisofs -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -o tor.iso iso.tor
 
-	if [ "x$DEBUG" == "xyes" ] ; then
+	if [ "x$DEBUG" = "xyes" ] ; then
 		mv tor.iso tor.uclibc.i686.debug.$RELEASE.iso
 		md5sum tor.uclibc.i686.debug.$RELEASE.iso > tor.uclibc.i686.debug.$RELEASE.iso.md5
 	else
@@ -375,7 +380,7 @@ EOF
 
 ################################################################################
 
-[[ $CLEAN == 1 ]] && clean_start
+[ "x$CLEAN" = "xyes" ] && clean_start
 start_build
 get_configs
 get_sources

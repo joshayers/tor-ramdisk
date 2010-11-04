@@ -63,7 +63,7 @@ get_sources()
 	[ ! -f $NTPD.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenNTPD/$NTPD.tar.gz
 	[ ! -f $LINUX.tar.bz2 ] && wget http://www.kernel.org/pub/linux/kernel/v2.6/$LINUX.tar.bz2
 	[ ! -f $PATCHES.tar.bz2 ] && wget http://cheshire.dyc.edu/pub/gentoo/distfiles/$PATCHES.tar.bz2 
-	if
+	if [ $USEOPENSSH == 1 ] ; then
 		[ ! -f $OPENSSH.tar.gz ] && wget http://openbsd.org.ar/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
 	else
 		[ ! -f $DROPBEAR.tar.gz ] && wget http://matt.ucc.asn.au/dropbear/$DROPBEAR.tar.gz

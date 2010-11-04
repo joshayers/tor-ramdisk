@@ -6,7 +6,12 @@ RELEASE=testing
 BUSYBOX=busybox-1.17.2
 TOR=tor-0.2.1.26
 NTPD=openntpd-3.9p1
-OPENSSH=openssh-5.6p1
+
+if [ $USEOPENSSH == 1 ] ; then
+	OPENSSH=openssh-5.6p1
+else
+	DROPBEAR=dropbear-0.52
+fi
 
 KVERSION=2.6.32
 LINUX=linux-2.6.32.23
@@ -37,12 +42,12 @@ get_configs()
 	cd configs
 
 	if [ "x$DEBUG" == "xyes" ] ; then
-		[ ! -f $BUSYBOX.debug.config ] && wget http://opensource.dyc.edu/pub/tor-ramdisk/archives/scripts.$RELEASE/configs/$BUSYBOX.debug.config
+		[ ! -f $BUSYBOX.debug.config ] && echo "Missing busybox config" && exit
 	else
-		[ ! -f $BUSYBOX.config ] && wget http://opensource.dyc.edu/pub/tor-ramdisk/archives/scripts.$RELEASE/configs/$BUSYBOX.config
+		[ ! -f $BUSYBOX.config ] && echo "Missing busybox config" && exit
 	fi
-	[ ! -f setup ] && wget http://opensource.dyc.edu/pub/tor-ramdisk/archives/scripts.$RELEASE/configs/setup
-	[ ! -f kernel-$KVERSION.config ] && wget http://opensource.dyc.edu/pub/tor-ramdisk/archives/scripts.$RELEASE/configs/kernel-$KVERSION.config
+	[ ! -f setup ] && echo "Missing setup script" && exit
+	[ ! -f kernel-$KVERSION.config ] && echo "Missing kernel config" && exit
 }
 
 ################################################################################
@@ -58,7 +63,11 @@ get_sources()
 	[ ! -f $NTPD.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenNTPD/$NTPD.tar.gz
 	[ ! -f $LINUX.tar.bz2 ] && wget http://www.kernel.org/pub/linux/kernel/v2.6/$LINUX.tar.bz2
 	[ ! -f $PATCHES.tar.bz2 ] && wget http://cheshire.dyc.edu/pub/gentoo/distfiles/$PATCHES.tar.bz2 
-	[ ! -f $OPENSSH.tar.gz ] && wget http://openbsd.org.ar/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
+	if
+		[ ! -f $OPENSSH.tar.gz ] && wget http://openbsd.org.ar/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
+	else
+		[ ! -f $DROPBEAR.tar.gz ] && wget http://matt.ucc.asn.au/dropbear/$DROPBEAR.tar.gz
+	fi
 }
 
 ################################################################################
@@ -107,16 +116,26 @@ build_ntpd()
 
 ################################################################################
 
-build_openssh()
+build_scp()
 {
 	cd $WORKING
-	[ -f $OPENSSH/scp ] && return 0
-	tar zxvf $WORKING/../sources/$OPENSSH.tar.gz
-	cd $OPENSSH
-	./configure
-	sed -i -e 's/^LDFLAGS=/LDFLAGS=-static /' Makefile
-	make
-	strip scp
+	if [ $USEOPENSSH == "1" ] ; then
+		[ -f $OPENSSH/scp ] && return 0
+		tar zxvf $WORKING/../sources/$OPENSSH.tar.gz
+		cd $OPENSSH
+		./configure
+		sed -i -e 's/^LDFLAGS=/LDFLAGS=-static /' Makefile
+		make
+		strip scp
+	else
+		[ -f $DROPBEAR/dbclient -a -f $DROPBEAR/scp ] && return 0
+		tar zxvf $WORKING/../sources/$DROPBEAR.tar.gz
+		cd $DROPBEAR
+		./configure --prefix=
+		STATIC=1 PROGRAMS="dbclient scp" make
+		strip dbclient
+		strip scp
+	fi
 }
 
 ################################################################################
@@ -356,14 +375,14 @@ EOF
 
 ################################################################################
 
-[[ $CLEAN == 1 ]] && clean_start
+[ $CLEAN == 1 ] && clean_start
 start_build
 get_configs
 get_sources
 build_busybox
 build_tor
 build_ntpd
-build_openssh
+build_scp
 prepare_initramfs
 populate_bin
 populate_etc

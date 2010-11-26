@@ -380,11 +380,11 @@ EOF
 	mkisofs -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -o tor.iso iso.tor
 
 	if [ "x$DEBUG" = "xyes" ] ; then
-		mv tor.iso tor.uclibc.i686.debug.$RELEASE.iso
-		md5sum tor.uclibc.i686.debug.$RELEASE.iso > tor.uclibc.i686.debug.$RELEASE.iso.md5
+		mv tor.iso tor.uclibc.$TARGET.debug.$RELEASE.iso
+		md5sum tor.uclibc.$TARGET.debug.$RELEASE.iso > tor.uclibc.$TARGET.debug.$RELEASE.iso.md5
 	else
-		mv tor.iso tor.uclibc.i686.$RELEASE.iso
-		md5sum tor.uclibc.i686.$RELEASE.iso > tor.uclibc.i686.$RELEASE.iso.md5
+		mv tor.iso tor.uclibc.$TARGET.$RELEASE.iso
+		md5sum tor.uclibc.$TARGET.$RELEASE.iso > tor.uclibc.$TARGET.$RELEASE.iso.md5
 	fi
 }
 

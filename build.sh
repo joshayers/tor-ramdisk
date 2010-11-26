@@ -19,6 +19,14 @@ PATCHES=hardened-patches-2.6.32-30.extras
 
 ################################################################################
 
+set_target()
+{
+	[ "x$TARGET" = "x" ] && TARGET="x86"
+	[ "x$TARGET" != "xx86" -a "x$TARGET" != "xx86_64" ] && echo "Unknown ARCH" && exit
+}
+
+################################################################################
+
 clean_start()
 {
 	rm -rf release
@@ -346,8 +354,8 @@ compile_kernel()
 	for i in ../$KVERSION/* ; do patch -p 1 < $i ; done 
 
 	cd $WORKING/$LINUX
-	cp $WORKING/../configs/kernel-$KVERSION.config .config
-	ARCH="x86" make
+	cp $WORKING/../configs/kernel-$KVERSION.$TARGET.config .config
+	ARCH=$TARGET make
 }
 
 ################################################################################
@@ -383,6 +391,8 @@ EOF
 ################################################################################
 
 [ "x$CLEAN" = "xyes" ] && clean_start
+
+set_target
 start_build
 get_configs
 get_sources

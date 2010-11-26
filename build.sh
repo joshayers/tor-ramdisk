@@ -347,7 +347,7 @@ finish_initramfs()
 compile_kernel()
 {
 	cd $WORKING
-	[ -f $LINUX/arch/i386/boot/bzImage ] && return 0
+	[ -f $LINUX/arch/$TARGET/boot/bzImage ] && return 0
 	tar jxvf ../sources/$LINUX.tar.bz2
 	tar jxvf ../sources/$PATCHES.tar.bz2 
 	cd $LINUX
@@ -366,7 +366,7 @@ make_iso()
 	mkdir -p iso.tor/boot/grub
 	cp /lib/grub/i386-gentoo/stage2_eltorito iso.tor/boot/grub/
 	cp $WORKING/initramfs.igz iso.tor/boot
-	cp $WORKING/$LINUX/arch/i386/boot/bzImage iso.tor/boot/kernel.tor 
+	cp $WORKING/$LINUX/arch/$TARGET/boot/bzImage iso.tor/boot/kernel.tor 
 
 	cd $WORKING
 cat << EOF > iso.tor/boot/grub/menu.lst

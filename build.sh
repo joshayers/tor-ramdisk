@@ -55,7 +55,7 @@ get_configs()
 		[ ! -f $BUSYBOX.config ] && echo "Missing busybox config" && exit
 	fi
 	[ ! -f setup ] && echo "Missing setup script" && exit
-	[ ! -f kernel-$KVERSION.config ] && echo "Missing kernel config" && exit
+	[ ! -f kernel-$KVERSION.$TARGET.config ] && echo "Missing kernel config" && exit
 }
 
 ################################################################################

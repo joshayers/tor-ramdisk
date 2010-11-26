@@ -3,8 +3,8 @@
 RELEASE=testing
 #DEBUG=yes
 
-BUSYBOX=busybox-1.17.2
-TOR=tor-0.2.1.26
+BUSYBOX=busybox-1.17.4
+TOR=tor-0.2.1.27
 NTPD=openntpd-3.9p1
 
 if [ "x$USEDROPBEAR" = "xyes" ] ; then
@@ -14,8 +14,8 @@ else
 fi
 
 KVERSION=2.6.32
-LINUX=linux-2.6.32.23
-PATCHES=hardened-patches-2.6.32-22.extras
+LINUX=linux-2.6.32.25
+PATCHES=hardened-patches-2.6.32-30.extras
 
 ################################################################################
 

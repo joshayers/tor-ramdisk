@@ -104,7 +104,7 @@ startnet()
 
 		echo
 		echo "Do you want to specify a DNS server, or use the one offered by DHCP?"
-		echo -n "Enter 'yes' to specify a DNS server, 'no' to use the one offered:"
+		echo -n "Enter 'yes' to specify a DNS server, 'no' to use the one offered: "
 		unset DNS
 		read DNS
 
@@ -122,6 +122,7 @@ startnet()
 			nslookup www.google.com >/dev/null 2>&1 || return 5
 
 		elif [ "x$DNS" = "xno" ]
+		then
 			ifconfig $ETH up
 			udhcpc -i $ETH -s /etc/udhcpc 2>&1 || return 6
 		else
@@ -174,7 +175,7 @@ importing()
 		echo "Importing torrc ..."
 		echo
 
-		echo -n "Enter 'ftp' or 'scp':"
+		echo -n "Enter 'ftp' or 'scp': "
 		unset FTP
 		read FTP
 
@@ -315,7 +316,7 @@ importing()
 		echo "Importing secret key ..."
 		echo
 
-		echo -n "Enter 'ftp' or 'scp':"
+		echo -n "Enter 'ftp' or 'scp': "
 		unset FTP
 		read FTP
 
@@ -402,7 +403,7 @@ exporting()
 			echo "Exporting torrc ..."
 			echo
 
-			echo -n "Enter 'ftp' or 'scp':"
+			echo -n "Enter 'ftp' or 'scp': "
 			unset FTP
 			read FTP
 

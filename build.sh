@@ -103,7 +103,6 @@ build_tor()
 	tar zxvf $WORKING/../sources/$TOR.tar.gz
 	cd $TOR
 	./configure --prefix=
-	sed -i 's/^CFLAGS =/CFLAGS = -static/' src/or/Makefile
 	make
 	strip src/or/tor
 }
@@ -117,7 +116,7 @@ build_ntpd()
 	tar zxvf $WORKING/../sources/$NTPD.tar.gz
 	cd $NTPD
 	sed -i '/NTPD_USER/s:_ntp:ntp:' ntpd.h
-	CFLAGS="-static" ./configure --with-privsep-user=ntp --prefix=
+	./configure --with-privsep-user=ntp --prefix=
 	make
 	strip ntpd
 }
@@ -140,7 +139,6 @@ build_scp()
 		tar zxvf $WORKING/../sources/$OPENSSH.tar.gz
 		cd $OPENSSH
 		./configure --prefix=
-		sed -i -e 's/^LDFLAGS=/LDFLAGS=-static /' Makefile
 		make
 		strip ssh
 		strip scp
@@ -155,13 +153,14 @@ prepare_initramfs()
 	rm -rf initramfs
 	mkdir initramfs
 	cd $WORKING/initramfs
-	mkdir -p bin dev etc/tor proc tmp usr var/empty var/tor/keys
+	mkdir -p bin dev etc/tor lib proc tmp usr var/empty var/tor/keys
 	chmod 1777 tmp
 	chown -R 500:500 var/tor
 	chmod -R 700 var/tor
 	ln -s bin sbin
 	ln -s ../bin usr/bin
 	ln -s ../bin usr/sbin
+	ln -s ../lib usr/lib
 }
 
 ################################################################################
@@ -183,10 +182,21 @@ populate_bin()
 	chmod 755 setup
 
 	cd $WORKING/initramfs
-	chroot . /bin/busybox --install -s
+	ln -s bin/busybox init
+}
+
+################################################################################
+
+populate_lib()
+{
+	cd $WORKING/initramfs/lib
+	for i in $(ldd ../bin/busybox | awk '{print $3}') ; do cp -f $i . ; done
+	for i in $(ldd ../bin/ntpd | awk '{print $3}') ; do cp -f $i . ; done
+	for i in $(ldd ../bin/ssh | awk '{print $3}') ; do cp -f $i . ; done
+	for i in $(ldd ../bin/tor | awk '{print $3}') ; do cp -f $i . ; done
 
 	cd $WORKING/initramfs
-	ln -s bin/busybox init
+	chroot . /bin/busybox --install -s
 }
 
 ################################################################################
@@ -402,6 +412,7 @@ build_ntpd
 build_scp
 prepare_initramfs
 populate_bin
+populate_lib
 populate_etc
 populate_dev
 finish_initramfs

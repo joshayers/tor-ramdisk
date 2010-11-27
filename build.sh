@@ -180,9 +180,6 @@ populate_bin()
 	fi
 	cp $WORKING/../configs/setup .
 	chmod 755 setup
-
-	cd $WORKING/initramfs
-	ln -s bin/busybox init
 }
 
 ################################################################################
@@ -196,6 +193,7 @@ populate_lib()
 	for i in $(ldd ../bin/tor | awk '{print $3}') ; do cp -f $i . ; done
 
 	cd $WORKING/initramfs
+	ln -s bin/busybox init
 	chroot . /bin/busybox --install -s
 }
 

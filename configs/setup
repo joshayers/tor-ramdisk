@@ -573,7 +573,7 @@ do
 			elif [ $ERR -eq 7 ]
 			then
 				NETWORK=0
-				echo "*** FAILED to establish ftp or scp ***"
+				echo "*** FAILED to establish dns server ***"
 			elif [ $ERR -eq 8 ]
 			then
 				NETWORK=0 

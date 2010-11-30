@@ -1,10 +1,17 @@
 #!/bin/sh
 
-RELEASE=ar7161.20100618
+RELEASE=ar7161.testing
+#DEBUG=yes
 
-BUSYBOX=busybox-1.16.1
-TOR=tor-0.2.1.26
+BUSYBOX=busybox-1.17.4
+TOR=tor-0.2.1.27
 NTPD=openntpd-3.9p1
+
+if [ "x$USEDROPBEAR" = "xyes" ] ; then
+	DROPBEAR=dropbear-0.52
+else
+	OPENSSH=openssh-5.6p1
+fi
 
 ################################################################################
 
@@ -30,8 +37,12 @@ get_configs()
 	mkdir -p configs
 	cd configs
 
-	[ ! -f $BUSYBOX.config ] && wget http://opensource.dyc.edu/pub/tor-mips-ramdisk/archives/scripts.$RELEASE/configs/$BUSYBOX.config
-	[ ! -f setup ] && wget http://opensource.dyc.edu/pub/tor-mips-ramdisk/archives/scripts.$RELEASE/configs/setup
+	if [ "x$DEBUG" = "xyes" ] ; then
+		[ ! -f $BUSYBOX.debug.config ] && echo "Missing busybox config" && exit
+	else
+		[ ! -f $BUSYBOX.config ] && echo "Missing busybox config" && exit
+	fi
+	[ ! -f setup ] && echo "Missing setup script" && exit
 }
 
 ################################################################################
@@ -45,6 +56,12 @@ get_sources()
 	[ ! -f $BUSYBOX.tar.bz2 ] && wget http://www.busybox.net/downloads/$BUSYBOX.tar.bz2
 	[ ! -f $TOR.tar.gz ] && wget http://www.torproject.org/dist/$TOR.tar.gz
 	[ ! -f $NTPD.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenNTPD/$NTPD.tar.gz
+
+	if [ "x$USEDROPBEAR" = "xyes" ] ; then
+		[ ! -f $DROPBEAR.tar.gz ] && wget http://matt.ucc.asn.au/dropbear/$DROPBEAR.tar.gz
+	else
+		[ ! -f $OPENSSH.tar.gz ] && wget http://openbsd.org/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
+	fi
 }
 
 ################################################################################
@@ -52,11 +69,16 @@ get_sources()
 build_busybox()
 {
 	cd $WORKING
+	[ -f $BUSYBOX/busybox ] && return 0
 	tar jxvf $WORKING/../sources/$BUSYBOX.tar.bz2
 	cd $BUSYBOX
-	cp $WORKING/../configs/$BUSYBOX.config .
-	mv $BUSYBOX.config .config
-	CFLAGS="-w" make
+	if [ "x$DEBUG" = "xyes" ] ; then
+		cp $WORKING/../configs/$BUSYBOX.debug.config .config
+	else
+		cp $WORKING/../configs/$BUSYBOX.config .config
+	fi
+	#CFLAGS="${CFLAGS} -w" make
+	make
 }
 
 ################################################################################
@@ -64,9 +86,10 @@ build_busybox()
 build_tor()
 {
 	cd $WORKING
+	[ -f $TOR/src/or/tor ] && return 0
 	tar zxvf $WORKING/../sources/$TOR.tar.gz
 	cd $TOR
-	CFLAGS="-static" ./configure --prefix=
+	./configure --prefix=
 	make
 	strip src/or/tor
 }
@@ -76,12 +99,37 @@ build_tor()
 build_ntpd()
 {
 	cd $WORKING
+	[ -f $NTPD/ntpd ] && return 0
 	tar zxvf $WORKING/../sources/$NTPD.tar.gz
 	cd $NTPD
 	sed -i '/NTPD_USER/s:_ntp:ntp:' ntpd.h
-	CFLAGS="-static" ./configure --with-privsep-user=ntp --prefix=
+	./configure --with-privsep-user=ntp --prefix=
 	make
 	strip ntpd
+}
+
+################################################################################
+
+build_scp()
+{
+	cd $WORKING
+	if [ "x$USEDROPBEAR" = "xyes" ] ; then
+		[ -f $DROPBEAR/dbclient -a -f $DROPBEAR/scp ] && return 0
+		tar zxvf $WORKING/../sources/$DROPBEAR.tar.gz
+		cd $DROPBEAR
+		./configure --prefix=
+		STATIC=1 PROGRAMS="dbclient scp" make
+		strip dbclient
+		strip scp
+	else
+		[ -f $OPENSSH/ssh -a -f $OPENSSH/scp ] && return 0
+		tar zxvf $WORKING/../sources/$OPENSSH.tar.gz
+		cd $OPENSSH
+		./configure --prefix=
+		make
+		strip ssh
+		strip scp
+	fi
 }
 
 ################################################################################
@@ -89,15 +137,17 @@ build_ntpd()
 prepare_initramfs()
 {
 	cd $WORKING
+	rm -rf initramfs
 	mkdir initramfs
 	cd $WORKING/initramfs
-	mkdir -p bin dev etc/tor proc tmp usr var/empty var/tor/keys
+	mkdir -p bin dev etc/tor lib proc tmp usr var/empty var/tor/keys
 	chmod 1777 tmp
 	chown -R 500:500 var/tor
 	chmod -R 700 var/tor
 	ln -s bin sbin
 	ln -s ../bin usr/bin
 	ln -s ../bin usr/sbin
+	ln -s ../lib usr/lib
 }
 
 ################################################################################
@@ -108,14 +158,30 @@ populate_bin()
 	cp $WORKING/$BUSYBOX/busybox .
 	cp $WORKING/$TOR/src/or/tor .
 	cp $WORKING/$NTPD/ntpd .
+	if [ "x$USEDROPBEAR" = "xyes" ] ; then
+		cp $WORKING/$DROPBEAR/dbclient .
+		cp $WORKING/$DROPBEAR/scp .
+	else
+		cp $WORKING/$OPENSSH/ssh .
+		cp $WORKING/$OPENSSH/scp .
+	fi
 	cp $WORKING/../configs/setup .
 	chmod 755 setup
+}
 
-	cd $WORKING/initramfs
-	chroot . /bin/busybox --install -s
+################################################################################
+
+populate_lib()
+{
+	cd $WORKING/initramfs/lib
+	for i in $(ldd ../bin/busybox | awk '{print $3}') ; do cp -f $i . ; done
+	for i in $(ldd ../bin/ntpd | awk '{print $3}') ; do cp -f $i . ; done
+	for i in $(ldd ../bin/ssh | awk '{print $3}') ; do cp -f $i . ; done
+	for i in $(ldd ../bin/tor | awk '{print $3}') ; do cp -f $i . ; done
 
 	cd $WORKING/initramfs
 	ln -s bin/busybox init
+	chroot . /bin/busybox --install -s
 }
 
 ################################################################################
@@ -252,7 +318,8 @@ populate_dev()
 
 ################################################################################
 
-clean_start
+[ "x$CLEAN" = "xyes" ] && clean_start
+
 start_build
 get_configs
 get_sources

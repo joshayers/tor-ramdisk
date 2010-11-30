@@ -210,6 +210,9 @@ importing()
 			return 1
 		fi
 
+		chown root:root /etc/tor/torrc
+		chmod 644 /etc/tor/torrc
+
 		echo
 		echo "<torrc successfully imported>"
 		echo
@@ -264,6 +267,9 @@ importing()
 		then
 			echo "ExitPolicy reject *:*" >> /etc/tor/torrc
 		fi
+
+		chown root:root /etc/tor/torrc
+		chmod 644 /etc/tor/torrc
 
 	else
 

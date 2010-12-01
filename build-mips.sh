@@ -60,7 +60,7 @@ get_sources()
 	if [ "x$USEDROPBEAR" = "xyes" ] ; then
 		[ ! -f $DROPBEAR.tar.gz ] && wget http://matt.ucc.asn.au/dropbear/$DROPBEAR.tar.gz
 	else
-		[ ! -f $OPENSSH.tar.gz ] && wget http://openbsd.org/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
+		[ ! -f $OPENSSH.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
 	fi
 }
 
@@ -326,8 +326,10 @@ get_sources
 build_busybox
 build_tor
 build_ntpd
+build_scp
 prepare_initramfs
 populate_bin
+populate_lib
 populate_etc
 populate_dev
 

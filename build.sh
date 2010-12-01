@@ -74,7 +74,7 @@ get_sources()
 	if [ "x$USEDROPBEAR" = "xyes" ] ; then
 		[ ! -f $DROPBEAR.tar.gz ] && wget http://matt.ucc.asn.au/dropbear/$DROPBEAR.tar.gz
 	else
-		[ ! -f $OPENSSH.tar.gz ] && wget http://openbsd.org/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
+		[ ! -f $OPENSSH.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
 	fi
 }
 

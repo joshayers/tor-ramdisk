@@ -413,7 +413,7 @@ exporting()
 			unset FTP
 			read FTP
 
-			echo -n "Enter the hostname/IP of the ftp server: "
+			echo -n "Enter the hostname/IP of the ftp/ssh server: "
 			unset HOST
 			read HOST
 	
@@ -470,7 +470,7 @@ exporting()
 			echo "Exporting secret_id_key ..."
 			echo
 
-			echo -n "Enter the hostname/IP of the ftp server: "
+			echo -n "Enter the hostname/IP of the ftp/ssh server: "
 			unset HOST
 			read HOST
 	

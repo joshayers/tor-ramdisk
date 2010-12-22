@@ -421,7 +421,7 @@ exporting()
 			unset FTPPATH
 			read FTPPATH
 
-			echo -n "Enter the username (or anonymous) of the ftp account: "
+			echo -n "Enter the username (or anonymous) of the ftp/ssh account: "
 			unset USER
 			read USER
 
@@ -478,7 +478,7 @@ exporting()
 			unset FTPPATH
 			read FTPPATH
 
-			echo -n "Enter the username (or anonymous) of the ftp account: "
+			echo -n "Enter the username (or anonymous) of the ftp/ssh account: "
 			unset USER
 			read USER
 

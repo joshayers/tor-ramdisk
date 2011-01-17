@@ -1,21 +1,21 @@
 #!/bin/sh
 
-RELEASE=testing
-#DEBUG=yes
-
 BUSYBOX=busybox-1.18.2
 TOR=tor-0.2.1.29
 NTPD=openntpd-3.9p1
-
-if [ "x$USEDROPBEAR" = "xyes" ] ; then
-	DROPBEAR=dropbear-0.52
-else
-	OPENSSH=openssh-5.6p1
-fi
+OPENSSH=openssh-5.6p1
 
 KVERSION=2.6.32
 LINUX=linux-2.6.32.28
 PATCHES=hardened-patches-2.6.32-37.extras
+
+################################################################################
+
+set_start()
+{
+	[ "x$CLEAN" = "xyes" ] && rm -rf release
+	[ "x$DEBUG" = "x" ] && unset DEBUG
+}
 
 ################################################################################
 
@@ -27,9 +27,9 @@ set_target()
 
 ################################################################################
 
-clean_start()
+set_release()
 {
-	rm -rf release
+	[ "x$RELEASE" = "x" ] && RELEASE="testing"
 }
 
 ################################################################################
@@ -69,13 +69,9 @@ get_sources()
 	[ ! -f $BUSYBOX.tar.bz2 ] && wget http://www.busybox.net/downloads/$BUSYBOX.tar.bz2
 	[ ! -f $TOR.tar.gz ] && wget http://www.torproject.org/dist/$TOR.tar.gz
 	[ ! -f $NTPD.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenNTPD/$NTPD.tar.gz
-	[ ! -f $LINUX.tar.bz2 ] && wget http://www.kernel.org/pub/linux/kernel/v2.6/$LINUX.tar.bz2
+	[ ! -f $LINUX.tar.bz2 ] && wget http://www.kernel.org/pub/linux/kernel/v2.6/longterm/v2.6.32/$LINUX.tar.bz2
 	[ ! -f $PATCHES.tar.bz2 ] && wget http://cheshire.dyc.edu/pub/gentoo/distfiles/$PATCHES.tar.bz2 
-	if [ "x$USEDROPBEAR" = "xyes" ] ; then
-		[ ! -f $DROPBEAR.tar.gz ] && wget http://matt.ucc.asn.au/dropbear/$DROPBEAR.tar.gz
-	else
-		[ ! -f $OPENSSH.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
-	fi
+	[ ! -f $OPENSSH.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
 }
 
 ################################################################################
@@ -126,23 +122,13 @@ build_ntpd()
 build_scp()
 {
 	cd $WORKING
-	if [ "x$USEDROPBEAR" = "xyes" ] ; then
-		[ -f $DROPBEAR/dbclient -a -f $DROPBEAR/scp ] && return 0
-		tar zxvf $WORKING/../sources/$DROPBEAR.tar.gz
-		cd $DROPBEAR
-		./configure --prefix=
-		STATIC=1 PROGRAMS="dbclient scp" make
-		strip dbclient
-		strip scp
-	else
-		[ -f $OPENSSH/ssh -a -f $OPENSSH/scp ] && return 0
-		tar zxvf $WORKING/../sources/$OPENSSH.tar.gz
-		cd $OPENSSH
-		./configure --prefix=
-		make
-		strip ssh
-		strip scp
-	fi
+	[ -f $OPENSSH/ssh -a -f $OPENSSH/scp ] && return 0
+	tar zxvf $WORKING/../sources/$OPENSSH.tar.gz
+	cd $OPENSSH
+	./configure --prefix=
+	make
+	strip ssh
+	strip scp
 }
 
 ################################################################################
@@ -171,13 +157,8 @@ populate_bin()
 	cp $WORKING/$BUSYBOX/busybox .
 	cp $WORKING/$TOR/src/or/tor .
 	cp $WORKING/$NTPD/ntpd .
-	if [ "x$USEDROPBEAR" = "xyes" ] ; then
-		cp $WORKING/$DROPBEAR/dbclient .
-		cp $WORKING/$DROPBEAR/scp .
-	else
-		cp $WORKING/$OPENSSH/ssh .
-		cp $WORKING/$OPENSSH/scp .
-	fi
+	cp $WORKING/$OPENSSH/ssh .
+	cp $WORKING/$OPENSSH/scp .
 	cp $WORKING/../configs/setup .
 	chmod 755 setup
 }
@@ -287,7 +268,7 @@ EOF
 cat << EOF > group
 root:x:0:
 tor:x:500:
-ntp:x:500:
+ntp:x:501:
 EOF
 
 cat << EOF > gshadow
@@ -398,9 +379,9 @@ EOF
 
 ################################################################################
 
-[ "x$CLEAN" = "xyes" ] && clean_start
-
+set_start
 set_target
+set_release
 start_build
 get_configs
 get_sources
@@ -416,4 +397,3 @@ populate_dev
 finish_initramfs
 compile_kernel
 make_iso
-

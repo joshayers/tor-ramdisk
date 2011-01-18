@@ -7,11 +7,7 @@ BUSYBOX=busybox-1.17.4
 TOR=tor-0.2.1.27
 NTPD=openntpd-3.9p1
 
-if [ "x$USEDROPBEAR" = "xyes" ] ; then
-	DROPBEAR=dropbear-0.52
-else
-	OPENSSH=openssh-5.6p1
-fi
+OPENSSH=openssh-5.6p1
 
 ################################################################################
 
@@ -56,12 +52,7 @@ get_sources()
 	[ ! -f $BUSYBOX.tar.bz2 ] && wget http://www.busybox.net/downloads/$BUSYBOX.tar.bz2
 	[ ! -f $TOR.tar.gz ] && wget http://www.torproject.org/dist/$TOR.tar.gz
 	[ ! -f $NTPD.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenNTPD/$NTPD.tar.gz
-
-	if [ "x$USEDROPBEAR" = "xyes" ] ; then
-		[ ! -f $DROPBEAR.tar.gz ] && wget http://matt.ucc.asn.au/dropbear/$DROPBEAR.tar.gz
-	else
-		[ ! -f $OPENSSH.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
-	fi
+	[ ! -f $OPENSSH.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
 }
 
 ################################################################################
@@ -113,23 +104,13 @@ build_ntpd()
 build_scp()
 {
 	cd $WORKING
-	if [ "x$USEDROPBEAR" = "xyes" ] ; then
-		[ -f $DROPBEAR/dbclient -a -f $DROPBEAR/scp ] && return 0
-		tar zxvf $WORKING/../sources/$DROPBEAR.tar.gz
-		cd $DROPBEAR
-		./configure --prefix=
-		STATIC=1 PROGRAMS="dbclient scp" make
-		strip dbclient
-		strip scp
-	else
-		[ -f $OPENSSH/ssh -a -f $OPENSSH/scp ] && return 0
-		tar zxvf $WORKING/../sources/$OPENSSH.tar.gz
-		cd $OPENSSH
-		./configure --prefix=
-		make
-		strip ssh
-		strip scp
-	fi
+	[ -f $OPENSSH/ssh -a -f $OPENSSH/scp ] && return 0
+	tar zxvf $WORKING/../sources/$OPENSSH.tar.gz
+	cd $OPENSSH
+	./configure --prefix=
+	make
+	strip ssh
+	strip scp
 }
 
 ################################################################################
@@ -158,13 +139,8 @@ populate_bin()
 	cp $WORKING/$BUSYBOX/busybox .
 	cp $WORKING/$TOR/src/or/tor .
 	cp $WORKING/$NTPD/ntpd .
-	if [ "x$USEDROPBEAR" = "xyes" ] ; then
-		cp $WORKING/$DROPBEAR/dbclient .
-		cp $WORKING/$DROPBEAR/scp .
-	else
-		cp $WORKING/$OPENSSH/ssh .
-		cp $WORKING/$OPENSSH/scp .
-	fi
+	cp $WORKING/$OPENSSH/ssh .
+	cp $WORKING/$OPENSSH/scp .
 	cp $WORKING/../configs/setup .
 	chmod 755 setup
 }

@@ -1,19 +1,19 @@
 #!/bin/sh
 
 RELEASE=ar7161.testing
-#DEBUG=yes
 
-BUSYBOX=busybox-1.17.4
-TOR=tor-0.2.1.27
+BUSYBOX=busybox-1.18.2
+TOR=tor-0.2.1.29
 NTPD=openntpd-3.9p1
 
 OPENSSH=openssh-5.6p1
 
 ################################################################################
 
-clean_start()
+set_start()
 {
-	rm -rf release
+	[ "x$CLEAN" = "xyes" ] && rm -rf release
+	[ "x$DEBUG" = "x" ] && unset DEBUG
 }
 
 ################################################################################
@@ -294,8 +294,7 @@ populate_dev()
 
 ################################################################################
 
-[ "x$CLEAN" = "xyes" ] && clean_start
-
+set_start
 start_build
 get_configs
 get_sources

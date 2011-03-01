@@ -2,7 +2,7 @@
 
 BUSYBOX=busybox-1.18.3
 TOR=tor-0.2.1.30
-NTPD=openntpd-4.0
+NTPD=openntpd-3.9p1
 OPENSSH=openssh-5.8p1
 
 KVERSION=2.6.32

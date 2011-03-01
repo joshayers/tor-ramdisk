@@ -70,7 +70,7 @@ get_sources()
 	[ ! -f $TOR.tar.gz ] && wget http://www.torproject.org/dist/$TOR.tar.gz
 	[ ! -f $NTPD.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenNTPD/$NTPD.tar.gz
 	[ ! -f $LINUX.tar.bz2 ] && wget http://www.kernel.org/pub/linux/kernel/v2.6/longterm/v2.6.32/$LINUX.tar.bz2
-	[ ! -f $PATCHES.tar.bz2 ] && wget http://cheshire.dyc.edu/pub/gentoo/distfiles/$PATCHES.tar.bz2 
+	[ ! -f $PATCHES.tar.bz2 ] && wget http://dev.gentoo.org/~blueness/hardened-sources/hardened-patches/$PATCHES.tar.bz2 
 	[ ! -f $OPENSSH.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
 }
 

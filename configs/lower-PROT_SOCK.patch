@@ -1,0 +1,12 @@
+diff -Naur linux-2.6.32.42.orig//include/net/sock.h linux-2.6.32.42/include/net/sock.h
+--- linux-2.6.32.42.orig//include/net/sock.h	2011-07-15 23:39:57.000000000 +0000
++++ linux-2.6.32.42/include/net/sock.h	2011-07-15 23:40:24.000000000 +0000
+@@ -757,7 +757,7 @@
+ #define SOCK_DESTROY_TIME (10*HZ)
+ 
+ /* Sockets 0-1023 can't be bound to unless you are superuser */
+-#define PROT_SOCK	1024
++#define PROT_SOCK	1
+ 
+ #define SHUTDOWN_MASK	3
+ #define RCV_SHUTDOWN	1

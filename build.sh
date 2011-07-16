@@ -1,13 +1,13 @@
 #!/bin/sh
 
 BUSYBOX=busybox-1.18.4
-TOR=tor-0.2.1.30
+TOR=tor-0.2.2.30-rc
 NTPD=openntpd-3.9p1
 OPENSSH=openssh-5.8p1
 
 KVERSION=2.6.32
-LINUX=linux-2.6.32.41
-PATCHES=hardened-patches-2.6.32-54.extras
+LINUX=linux-2.6.32.42
+PATCHES=hardened-patches-2.6.32-58.extras
 
 ################################################################################
 
@@ -337,10 +337,11 @@ compile_kernel()
 {
 	cd $WORKING
 	[ -f $LINUX/arch/$TARGET/boot/bzImage ] && return 0
-	tar jxvf ../sources/$LINUX.tar.bz2
-	tar jxvf ../sources/$PATCHES.tar.bz2 
+	tar jxvf $WORKING/../sources/$LINUX.tar.bz2
+	tar jxvf $WORKING/../sources/$PATCHES.tar.bz2 
 	cd $LINUX
 	for i in ../$KVERSION/* ; do patch -p 1 < $i ; done 
+	for i in $WORKING/../configs/*.patch; do patch -p 1 < $i ; done
 
 	cd $WORKING/$LINUX
 	cp $WORKING/../configs/kernel-$KVERSION.$TARGET.config .config

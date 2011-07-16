@@ -3,7 +3,7 @@
 RELEASE=ar7161.testing
 
 BUSYBOX=busybox-1.18.4
-TOR=tor-0.2.1.30
+TOR=tor-0.2.2.30-rc
 NTPD=openntpd-3.9p1
 OPENSSH=openssh-5.8p1
 

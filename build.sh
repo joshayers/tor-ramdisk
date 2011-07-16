@@ -341,7 +341,7 @@ compile_kernel()
 	tar jxvf $WORKING/../sources/$PATCHES.tar.bz2 
 	cd $LINUX
 	for i in ../$KVERSION/* ; do patch -p 1 < $i ; done 
-	for i in $WORKING/../configs/*.patch; do patch -p 1 < $i ; done
+	for i in $WORKING/../configs/kernel-*.patch; do patch -p 1 < $i ; done
 
 	cd $WORKING/$LINUX
 	cp $WORKING/../configs/kernel-$KVERSION.$TARGET.config .config

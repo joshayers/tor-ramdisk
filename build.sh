@@ -1,13 +1,13 @@
 #!/bin/sh
 
-BUSYBOX=busybox-1.18.4
+BUSYBOX=busybox-1.18.5
 TOR=tor-0.2.2.30-rc
 NTPD=openntpd-3.9p1
 OPENSSH=openssh-5.8p1
 
 KVERSION=2.6.32
-LINUX=linux-2.6.32.42
-PATCHES=hardened-patches-2.6.32-58.extras
+LINUX=linux-2.6.32.44
+PATCHES=hardened-patches-2.6.32-64.extras
 
 ################################################################################
 
@@ -340,7 +340,7 @@ compile_kernel()
 	tar jxvf $WORKING/../sources/$LINUX.tar.bz2
 	tar jxvf $WORKING/../sources/$PATCHES.tar.bz2 
 	cd $LINUX
-	for i in ../$KVERSION/* ; do patch -p 1 < $i ; done 
+	for i in ../$KVERSION/4* ; do patch -p 1 < $i ; done 
 	for i in $WORKING/../configs/kernel-*.patch; do patch -p 1 < $i ; done
 
 	cd $WORKING/$LINUX

@@ -1,13 +1,13 @@
 #!/bin/sh
 
 BUSYBOX=busybox-1.18.5
-TOR=tor-0.2.2.30-rc
+TOR=tor-0.2.2.32
 NTPD=openntpd-3.9p1
 OPENSSH=openssh-5.8p1
 
 KVERSION=2.6.32
-LINUX=linux-2.6.32.44
-PATCHES=hardened-patches-2.6.32-64.extras
+LINUX=linux-2.6.32.45
+PATCHES=hardened-patches-2.6.32-68.extras
 
 ################################################################################
 
@@ -98,7 +98,7 @@ build_tor()
 	[ -f $TOR/src/or/tor ] && return 0
 	tar zxvf $WORKING/../sources/$TOR.tar.gz
 	cd $TOR
-	./configure --prefix=
+	./configure --prefix= --enable-gcc-hardening --enable-linker-hardening
 	make
 	strip src/or/tor
 }

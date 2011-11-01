@@ -79,7 +79,8 @@ build_tor()
 	[ -f $TOR/src/or/tor ] && return 0
 	tar zxvf $WORKING/../sources/$TOR.tar.gz
 	cd $TOR
-	./configure --prefix=
+	for i in $WORKING/../configs/tor-*.patch; do patch -p 1 < $i ; done
+	./configure --prefix= --enable-gcc-hardening --enable-linker-hardening
 	make
 	strip src/or/tor
 }

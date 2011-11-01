@@ -254,6 +254,7 @@ importing()
 		if [ "x$DIRECTORY" = "xdirectory" ]
 		then
 			echo "DirPort 9030" >> /etc/tor/torrc
+			echo "GeoIPFile /dev/null" >> /etc/tor/torrc
 		fi
 
 		echo

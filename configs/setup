@@ -330,7 +330,7 @@ importing()
 		unset HOST
 		read HOST
 	
-		echo -n "Enter the remote path of secret_id_key (eg. notpub/secret_id_key'): "
+		echo -n "Enter the remote path of secret_id_key (eg. pub/secret_id_key'): "
 		unset FTPPATH
 		read FTPPATH
 
@@ -474,7 +474,7 @@ exporting()
 			unset HOST
 			read HOST
 	
-			echo -n "Enter the remote path to save secret_id_key (eg. notpub/secret_id_key): "
+			echo -n "Enter the remote path to save secret_id_key (eg. pub/secret_id_key): "
 			unset FTPPATH
 			read FTPPATH
 

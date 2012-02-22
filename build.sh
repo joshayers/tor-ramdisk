@@ -1,13 +1,13 @@
 #!/bin/sh
 
-BUSYBOX=busybox-1.19.3
+BUSYBOX=busybox-1.19.4
 TOR=tor-0.2.2.35
 NTPD=openntpd-3.9p1
-OPENSSH=openssh-5.8p1
+OPENSSH=openssh-5.9p1
 
-KVERSION=2.6.32
-LINUX=linux-2.6.32.50
-PATCHES=hardened-patches-2.6.32-83.extras
+KVERSION=3.2.5
+LINUX=linux-3.2.5
+PATCHES=hardened-patches-3.2.5-1.extras
 
 ################################################################################
 
@@ -69,7 +69,7 @@ get_sources()
 	[ ! -f $BUSYBOX.tar.bz2 ] && wget http://www.busybox.net/downloads/$BUSYBOX.tar.bz2
 	[ ! -f $TOR.tar.gz ] && wget http://www.torproject.org/dist/$TOR.tar.gz
 	[ ! -f $NTPD.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenNTPD/$NTPD.tar.gz
-	[ ! -f $LINUX.tar.bz2 ] && wget http://www.kernel.org/pub/linux/kernel/v2.6/longterm/v2.6.32/$LINUX.tar.bz2
+	[ ! -f $LINUX.tar.bz2 ] && wget http://www.kernel.org/pub/linux/kernel/v3.x/$LINUX.tar.bz2
 	[ ! -f $PATCHES.tar.bz2 ] && wget http://dev.gentoo.org/~blueness/hardened-sources/hardened-patches/$PATCHES.tar.bz2 
 	[ ! -f $OPENSSH.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
 }

@@ -1,9 +1,9 @@
 #!/bin/sh
 
-BUSYBOX=busybox-1.19.4
+BUSYBOX=busybox-1.20.0
 TOR=tor-0.2.2.35
 NTPD=openntpd-3.9p1
-OPENSSH=openssh-5.9p1
+OPENSSH=openssh-6.0p1
 
 KVERSION=3.2.5
 LINUX=linux-3.2.5

@@ -62,6 +62,7 @@ build_busybox()
 	[ -f $BUSYBOX/busybox ] && return 0
 	tar jxvf $WORKING/../sources/$BUSYBOX.tar.bz2
 	cd $BUSYBOX
+	for i in $WORKING/../configs/busybox-*.patch; do patch -p 1 < $i ; done
 	if [ "x$DEBUG" = "xyes" ] ; then
 		cp $WORKING/../configs/$BUSYBOX.debug.config .config
 	else

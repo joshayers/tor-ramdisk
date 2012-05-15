@@ -1,0 +1,22 @@
+From d133144d41c2fef883d28497acafe59b6bc6043b Mon Sep 17 00:00:00 2001
+From: Denys Vlasenko <vda.linux@googlemail.com>
+Date: Sun, 29 Apr 2012 12:28:12 +0000
+Subject: fix build failure when compressed help is selected, but bz2 compression is not
+
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+---
+diff --git a/archival/libarchive/Kbuild.src b/archival/libarchive/Kbuild.src
+index 9592217..e2134be 100644
+--- a/archival/libarchive/Kbuild.src
++++ b/archival/libarchive/Kbuild.src
+@@ -60,7 +60,7 @@ lib-$(CONFIG_FEATURE_SEAMLESS_GZ)       += open_transformer.o decompress_gunzip.
+ lib-$(CONFIG_FEATURE_SEAMLESS_BZ2)      += open_transformer.o decompress_bunzip2.o
+ lib-$(CONFIG_FEATURE_SEAMLESS_LZMA)     += open_transformer.o decompress_unlzma.o
+ lib-$(CONFIG_FEATURE_SEAMLESS_XZ)       += open_transformer.o decompress_unxz.o
+-lib-$(CONFIG_FEATURE_COMPRESS_USAGE)    += decompress_bunzip2.o
++lib-$(CONFIG_FEATURE_COMPRESS_USAGE)    += open_transformer.o decompress_bunzip2.o
+ lib-$(CONFIG_FEATURE_COMPRESS_BBCONFIG) += decompress_bunzip2.o
+ lib-$(CONFIG_FEATURE_TAR_TO_COMMAND)    += data_extract_to_command.o
+ 
+--
+cgit v0.9.0.1-2-gef13

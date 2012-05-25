@@ -1,7 +1,7 @@
 #!/bin/sh
 
 BUSYBOX=busybox-1.20.0
-TOR=tor-0.2.2.35
+TOR=tor-0.2.2.36
 NTPD=openntpd-3.9p1
 OPENSSH=openssh-6.0p1
 

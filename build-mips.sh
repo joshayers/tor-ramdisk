@@ -2,8 +2,8 @@
 
 RELEASE=ar7161.testing
 
-BUSYBOX=busybox-1.20.0
-TOR=tor-0.2.2.36
+BUSYBOX=busybox-1.20.1
+TOR=tor-0.2.2.37
 NTPD=openntpd-3.9p1
 OPENSSH=openssh-6.0p1
 
@@ -148,13 +148,22 @@ populate_bin()
 
 ################################################################################
 
+get_needed()
+{
+	local A=$(readelf -a $1 | grep NEEDED | sed -e 's/^.*library://' -e 's/\[//' -e 's/\]//')
+	echo $A
+}
+
 populate_lib()
 {
 	cd $WORKING/initramfs/lib
-	for i in $(ldd ../bin/busybox | awk '{print $3}') ; do cp -f $i . ; done
-	for i in $(ldd ../bin/ntpd | awk '{print $3}') ; do cp -f $i . ; done
-	for i in $(ldd ../bin/ssh | awk '{print $3}') ; do cp -f $i . ; done
-	for i in $(ldd ../bin/tor | awk '{print $3}') ; do cp -f $i . ; done
+	for i in busybox ntpd ssh tor; do
+		A=$(get_needed ../bin/$i)
+		for j in $A ; do
+			[ -e /lib/$j ] && cp -f /lib/$j .
+			[ -e /usr/lib/$j ] && cp -f /usr/lib/$j .
+		done
+	done
 
 	cd $WORKING/initramfs
 	ln -s bin/busybox init

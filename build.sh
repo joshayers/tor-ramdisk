@@ -5,9 +5,9 @@ TOR=tor-0.2.2.38
 NTPD=openntpd-3.9p1
 OPENSSH=openssh-6.0p1
 
-KVERSION=3.5.1
-LINUX=linux-3.4.2
-PATCHES=hardened-patches-3.5.1-2.extras
+KVERSION=3.4.5
+LINUX=linux-3.4.5
+PATCHES=hardened-patches-3.4.5-1.extras
 
 ################################################################################
 

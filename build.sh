@@ -356,7 +356,7 @@ make_iso()
 {
 	cd $WORKING
 	mkdir -p iso.tor/boot/grub
-	cp /lib/grub/i386-pc/stage2_eltorito iso.tor/boot/grub/
+	cp /lib/grub/i386-gentoo/stage2_eltorito iso.tor/boot/grub/
 	cp $WORKING/initramfs.igz iso.tor/boot
 	cp $WORKING/$LINUX/arch/$TARGET/boot/bzImage iso.tor/boot/kernel.tor 
 

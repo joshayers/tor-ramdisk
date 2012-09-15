@@ -1,13 +1,13 @@
 #!/bin/sh
 
 BUSYBOX=busybox-1.20.2
-TOR=tor-0.2.2.38
+TOR=tor-0.2.2.39
 NTPD=openntpd-3.9p1
-OPENSSH=openssh-6.0p1
+OPENSSH=openssh-6.1p1
 
-KVERSION=3.4.5
-LINUX=linux-3.4.5
-PATCHES=hardened-patches-3.4.5-1.extras
+KVERSION=3.4.7
+LINUX=linux-3.4.7
+PATCHES=hardened-patches-3.4.7-1.extras
 
 ################################################################################
 
@@ -356,7 +356,7 @@ make_iso()
 {
 	cd $WORKING
 	mkdir -p iso.tor/boot/grub
-	cp /lib/grub/i386-gentoo/stage2_eltorito iso.tor/boot/grub/
+	cp /lib/grub/i386-pc/stage2_eltorito iso.tor/boot/grub/
 	cp $WORKING/initramfs.igz iso.tor/boot
 	cp $WORKING/$LINUX/arch/$TARGET/boot/bzImage iso.tor/boot/kernel.tor 
 

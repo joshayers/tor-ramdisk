@@ -1,13 +1,13 @@
 #!/bin/sh
 
 BUSYBOX=busybox-1.20.2
-TOR=tor-0.2.2.39
+TOR=tor-0.2.3.25
 NTPD=openntpd-3.9p1
 OPENSSH=openssh-6.1p1
 
-KVERSION=3.4.7
-LINUX=linux-3.4.7
-PATCHES=hardened-patches-3.4.7-1.extras
+KVERSION=3.6.7
+LINUX=linux-3.6.7
+PATCHES=hardened-patches-3.6.7-1.extras
 
 ################################################################################
 

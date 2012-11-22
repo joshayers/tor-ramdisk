@@ -6,8 +6,8 @@ NTPD=openntpd-3.9p1
 OPENSSH=openssh-6.1p1
 
 KVERSION=3.6.7
-LINUX=linux-3.6.7
-PATCHES=hardened-patches-3.6.7-1.extras
+LINUX=linux-${KVERSION}
+PATCHES=hardened-patches-${KVERSION}-1.extras
 
 ################################################################################
 

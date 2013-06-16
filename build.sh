@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 BUSYBOX=busybox-1.20.2
 TOR=tor-0.2.3.25
@@ -13,23 +13,23 @@ PATCHES=hardened-patches-${KVERSION}-1.extras
 
 set_start()
 {
-	[ "x$CLEAN" = "xyes" ] && rm -rf release
-	[ "x$DEBUG" = "x" ] && unset DEBUG
+	[[ "x$CLEAN" = "xyes" ]] && rm -rf release
+	[[ "x$DEBUG" = "x" ]] && unset DEBUG
 }
 
 ################################################################################
 
 set_target()
 {
-	[ "x$TARGET" = "x" ] && TARGET="x86"
-	[ "x$TARGET" != "xx86" -a "x$TARGET" != "xx86_64" ] && echo "Unknown ARCH" && exit
+	[[ "x$TARGET" = "x" ]] && TARGET="x86"
+	[[ "x$TARGET" != "xx86" && "x$TARGET" != "xx86_64" ]] && echo "Unknown ARCH" && exit
 }
 
 ################################################################################
 
 set_release()
 {
-	[ "x$RELEASE" = "x" ] && RELEASE="testing"
+	[[ "x$RELEASE" = "x" ]] && RELEASE="testing"
 }
 
 ################################################################################
@@ -49,13 +49,13 @@ get_configs()
 	mkdir -p configs
 	cd configs
 
-	if [ "x$DEBUG" = "xyes" ] ; then
-		[ ! -f $BUSYBOX.debug.config ] && echo "Missing busybox config" && exit
+	if [[ "x$DEBUG" = "xyes" ]] ; then
+		[[ ! -f $BUSYBOX.debug.config ]] && echo "Missing busybox config" && exit
 	else
-		[ ! -f $BUSYBOX.config ] && echo "Missing busybox config" && exit
+		[[ ! -f $BUSYBOX.config ]] && echo "Missing busybox config" && exit
 	fi
-	[ ! -f setup ] && echo "Missing setup script" && exit
-	[ ! -f kernel-$KVERSION.$TARGET.config ] && echo "Missing kernel config" && exit
+	[[ ! -f setup ]] && echo "Missing setup script" && exit
+	[[ ! -f kernel-$KVERSION.$TARGET.config ]] && echo "Missing kernel config" && exit
 }
 
 ################################################################################
@@ -66,12 +66,12 @@ get_sources()
 	mkdir -p sources
 	cd sources
 
-	[ ! -f $BUSYBOX.tar.bz2 ] && wget http://www.busybox.net/downloads/$BUSYBOX.tar.bz2
-	[ ! -f $TOR.tar.gz ] && wget http://www.torproject.org/dist/$TOR.tar.gz
-	[ ! -f $NTPD.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenNTPD/$NTPD.tar.gz
-	[ ! -f $LINUX.tar.bz2 ] && wget http://www.kernel.org/pub/linux/kernel/v3.x/$LINUX.tar.bz2
-	[ ! -f $PATCHES.tar.bz2 ] && wget http://dev.gentoo.org/~blueness/hardened-sources/hardened-patches/$PATCHES.tar.bz2 
-	[ ! -f $OPENSSH.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
+	[[ ! -f $BUSYBOX.tar.bz2 ]] && wget http://www.busybox.net/downloads/$BUSYBOX.tar.bz2
+	[[ ! -f $TOR.tar.gz ]] && wget http://www.torproject.org/dist/$TOR.tar.gz
+	[[ ! -f $NTPD.tar.gz ]] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenNTPD/$NTPD.tar.gz
+	[[ ! -f $LINUX.tar.bz2 ]] && wget http://www.kernel.org/pub/linux/kernel/v3.x/$LINUX.tar.bz2
+	[[ ! -f $PATCHES.tar.bz2 ]] && wget http://dev.gentoo.org/~blueness/hardened-sources/hardened-patches/$PATCHES.tar.bz2 
+	[[ ! -f $OPENSSH.tar.gz ]] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
 }
 
 ################################################################################
@@ -79,11 +79,11 @@ get_sources()
 build_busybox()
 {
 	cd $WORKING
-	[ -f $BUSYBOX/busybox ] && return 0
+	[[ -f $BUSYBOX/busybox ]] && return 0
 	tar jxvf $WORKING/../sources/$BUSYBOX.tar.bz2
 	cd $BUSYBOX
 	for i in $WORKING/../configs/busybox-*.patch; do patch -p 1 < $i ; done
-	if [ "x$DEBUG" = "xyes" ] ; then
+	if [[ "x$DEBUG" = "xyes" ]] ; then
 		cp $WORKING/../configs/$BUSYBOX.debug.config .config
 	else
 		cp $WORKING/../configs/$BUSYBOX.config .config
@@ -96,7 +96,7 @@ build_busybox()
 build_tor()
 {
 	cd $WORKING
-	[ -f $TOR/src/or/tor ] && return 0
+	[[ -f $TOR/src/or/tor ]] && return 0
 	tar zxvf $WORKING/../sources/$TOR.tar.gz
 	cd $TOR
 	for i in $WORKING/../configs/tor-*.patch; do patch -p 1 < $i ; done
@@ -110,7 +110,7 @@ build_tor()
 build_ntpd()
 {
 	cd $WORKING
-	[ -f $NTPD/ntpd ] && return 0
+	[[ -f $NTPD/ntpd ]] && return 0
 	tar zxvf $WORKING/../sources/$NTPD.tar.gz
 	cd $NTPD
 	sed -i '/NTPD_USER/s:_ntp:ntp:' ntpd.h
@@ -124,7 +124,7 @@ build_ntpd()
 build_scp()
 {
 	cd $WORKING
-	[ -f $OPENSSH/ssh -a -f $OPENSSH/scp ] && return 0
+	[[ -f $OPENSSH/ssh && -f $OPENSSH/scp ]] && return 0
 	tar zxvf $WORKING/../sources/$OPENSSH.tar.gz
 	cd $OPENSSH
 	./configure --prefix=
@@ -191,7 +191,7 @@ cat << EOF > fstab
 none          /proc       proc    defaults   0 0
 EOF
 
-if [ "x$DEBUG" = "xyes" ] ; then
+if [[ "x$DEBUG" = "xyes" ]] ; then
 cat << EOF > inittab
 ::sysinit:/etc/rcS
 tty1::respawn:/bin/setup
@@ -338,7 +338,7 @@ finish_initramfs()
 compile_kernel()
 {
 	cd $WORKING
-	[ -f $LINUX/arch/$TARGET/boot/bzImage ] && return 0
+	[[ -f $LINUX/arch/$TARGET/boot/bzImage ]] && return 0
 	tar jxvf $WORKING/../sources/$LINUX.tar.bz2
 	tar jxvf $WORKING/../sources/$PATCHES.tar.bz2 
 	cd $LINUX
@@ -371,7 +371,7 @@ EOF
 
 	mkisofs -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -o tor.iso iso.tor
 
-	if [ "x$DEBUG" = "xyes" ] ; then
+	if [[ "x$DEBUG" = "xyes" ]] ; then
 		mv tor.iso tor.uclibc.$TARGET.debug.$RELEASE.iso
 		md5sum tor.uclibc.$TARGET.debug.$RELEASE.iso > tor.uclibc.$TARGET.debug.$RELEASE.iso.md5
 	else

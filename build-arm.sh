@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 RELEASE=ar7161.testing
 
@@ -11,8 +11,8 @@ OPENSSH=openssh-6.1p1
 
 set_start()
 {
-	[ "x$CLEAN" = "xyes" ] && rm -rf release
-	[ "x$DEBUG" = "x" ] && unset DEBUG
+	[[ "x$CLEAN" = "xyes" ]] && rm -rf release
+	[[ "x$DEBUG" = "x" ]] && unset DEBUG
 }
 
 ################################################################################
@@ -32,12 +32,12 @@ get_configs()
 	mkdir -p configs
 	cd configs
 
-	if [ "x$DEBUG" = "xyes" ] ; then
-		[ ! -f $BUSYBOX.debug.config ] && echo "Missing busybox config" && exit
+	if [[ "x$DEBUG" = "xyes" ]] ; then
+		[[ ! -f $BUSYBOX.debug.config ]] && echo "Missing busybox config" && exit
 	else
-		[ ! -f $BUSYBOX.config ] && echo "Missing busybox config" && exit
+		[[ ! -f $BUSYBOX.config ]] && echo "Missing busybox config" && exit
 	fi
-	[ ! -f setup ] && echo "Missing setup script" && exit
+	[[ ! -f setup ]] && echo "Missing setup script" && exit
 }
 
 ################################################################################
@@ -48,10 +48,10 @@ get_sources()
 	mkdir -p sources
 	cd sources
 
-	[ ! -f $BUSYBOX.tar.bz2 ] && wget http://www.busybox.net/downloads/$BUSYBOX.tar.bz2
-	[ ! -f $TOR.tar.gz ] && wget http://www.torproject.org/dist/$TOR.tar.gz
-	[ ! -f $NTPD.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenNTPD/$NTPD.tar.gz
-	[ ! -f $OPENSSH.tar.gz ] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
+	[[ ! -f $BUSYBOX.tar.bz2 ]] && wget http://www.busybox.net/downloads/$BUSYBOX.tar.bz2
+	[[ ! -f $TOR.tar.gz ]] && wget http://www.torproject.org/dist/$TOR.tar.gz
+	[[ ! -f $NTPD.tar.gz ]] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenNTPD/$NTPD.tar.gz
+	[[ ! -f $OPENSSH.tar.gz ]] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
 }
 
 ################################################################################
@@ -59,11 +59,11 @@ get_sources()
 build_busybox()
 {
 	cd $WORKING
-	[ -f $BUSYBOX/busybox ] && return 0
+	[[ -f $BUSYBOX/busybox ]] && return 0
 	tar jxvf $WORKING/../sources/$BUSYBOX.tar.bz2
 	cd $BUSYBOX
 	for i in $WORKING/../configs/busybox-*.patch; do patch -p 1 < $i ; done
-	if [ "x$DEBUG" = "xyes" ] ; then
+	if [[ "x$DEBUG" = "xyes" ]] ; then
 		cp $WORKING/../configs/$BUSYBOX.debug.config .config
 	else
 		cp $WORKING/../configs/$BUSYBOX.config .config
@@ -77,7 +77,7 @@ build_busybox()
 build_tor()
 {
 	cd $WORKING
-	[ -f $TOR/src/or/tor ] && return 0
+	[[ -f $TOR/src/or/tor ]] && return 0
 	tar zxvf $WORKING/../sources/$TOR.tar.gz
 	cd $TOR
 	for i in $WORKING/../configs/tor-*.patch; do patch -p 1 < $i ; done
@@ -91,7 +91,7 @@ build_tor()
 build_ntpd()
 {
 	cd $WORKING
-	[ -f $NTPD/ntpd ] && return 0
+	[[ -f $NTPD/ntpd ]] && return 0
 	tar zxvf $WORKING/../sources/$NTPD.tar.gz
 	cd $NTPD
 	sed -i '/NTPD_USER/s:_ntp:ntp:' ntpd.h
@@ -105,7 +105,7 @@ build_ntpd()
 build_scp()
 {
 	cd $WORKING
-	[ -f $OPENSSH/ssh -a -f $OPENSSH/scp ] && return 0
+	[[ -f $OPENSSH/ssh && -f $OPENSSH/scp ]] && return 0
 	tar zxvf $WORKING/../sources/$OPENSSH.tar.gz
 	cd $OPENSSH
 	./configure --prefix=
@@ -238,7 +238,7 @@ EOF
 cat << EOF > group
 root:x:0:
 tor:x:500:
-ntp:x:500:
+ntp:x:501:
 EOF
 
 cat << EOF > gshadow

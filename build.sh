@@ -4,6 +4,7 @@ BUSYBOX=busybox-1.21.1
 TOR=tor-0.2.4.20
 NTPD=openntpd-3.9p1
 OPENSSH=openssh-6.1p1
+HAVEGED=haveged-1.9.1
 
 KVERSION=3.13.3
 LINUX=linux-${KVERSION}
@@ -72,6 +73,7 @@ get_sources()
 	[[ ! -f $LINUX.tar.xz ]] && wget http://www.kernel.org/pub/linux/kernel/v3.x/$LINUX.tar.xz
 	[[ ! -f $PATCHES.tar.bz2 ]] && wget http://dev.gentoo.org/~blueness/hardened-sources/hardened-patches/$PATCHES.tar.bz2 
 	[[ ! -f $OPENSSH.tar.gz ]] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
+	[[ ! -f $HAVEGED.tar.gz ]] && wget http://www.issihosts.com/haveged/$HAVEGED.tar.gz
 }
 
 ################################################################################
@@ -135,17 +137,32 @@ build_scp()
 
 ################################################################################
 
+build_haveged()
+{
+	cd $WORKING
+	[[ -f $HAVEGED/src/haveged ]] && return 0
+	tar zxvf $WORKING/../sources/$HAVEGED.tar.gz
+	cd $HAVEGED
+	./configure --prefix=
+	make
+	strip src/.libs/haveged
+	strip src/.libs/libhavege.so.1
+}
+
+################################################################################
+
 prepare_initramfs()
 {
 	cd $WORKING
 	rm -rf initramfs
 	mkdir initramfs
 	cd $WORKING/initramfs
-	mkdir -p bin dev etc/tor lib proc tmp usr var/empty var/tor/keys
+	mkdir -p bin dev etc/tor lib proc tmp usr run var/empty var/tor/keys
 	chmod 1777 tmp
 	chown -R 500:500 var/tor
 	chmod -R 700 var/tor
 	ln -s bin sbin
+	ln -s ../run var/run
 	ln -s ../bin usr/bin
 	ln -s ../bin usr/sbin
 	ln -s ../lib usr/lib
@@ -161,6 +178,7 @@ populate_bin()
 	cp $WORKING/$NTPD/ntpd .
 	cp $WORKING/$OPENSSH/ssh .
 	cp $WORKING/$OPENSSH/scp .
+	cp $WORKING/$HAVEGED/src/.libs/haveged .
 	cp $WORKING/../configs/setup .
 	chmod 755 setup
 }
@@ -174,6 +192,7 @@ populate_lib()
 	for i in $(ldd ../bin/ntpd | awk '{print $3}') ; do cp -f $i . ; done
 	for i in $(ldd ../bin/ssh | awk '{print $3}') ; do cp -f $i . ; done
 	for i in $(ldd ../bin/tor | awk '{print $3}') ; do cp -f $i . ; done
+	cp -f $WORKING/$HAVEGED/src/.libs/libhavege.so.1 .
 
 	cd $WORKING/initramfs
 	ln -s bin/busybox init
@@ -215,6 +234,7 @@ cat << EOF > rcS
 /bin/mount -t proc proc /proc
 /bin/mount -o remount,rw /dev/ram0 /
 /sbin/ifconfig lo 127.0.0.1
+/bin/haveged -r 0 -w 1024 -v 0
 EOF
 
 chmod 755 rcS
@@ -392,6 +412,7 @@ build_busybox
 build_tor
 build_ntpd
 build_scp
+build_haveged
 prepare_initramfs
 populate_bin
 populate_lib

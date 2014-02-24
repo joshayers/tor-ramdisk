@@ -534,6 +534,7 @@ do
 		fi
 	fi
 	echo "* Enter \"resources\" to see ram and cpu usage"
+	echo "* Enter \"entropy\" to check available entropy"
 	echo "* Enter \"reboot\" to export the secret_id_key/torrc AND reboot the system."
 	echo "* Enter \"shutdown\" to export the secret_id_key/torrc AND halt the system."
 	echo
@@ -866,6 +867,15 @@ do
 			read DUMMY
 			echo
 			top
+			echo
+			echo -n "Hit enter to continue: "
+			read DUMMY
+			echo
+			;;
+
+		entropy)
+			echo -n "Available entropy: "
+			cat /proc/sys/kernel/random/entropy_avail
 			echo
 			echo -n "Hit enter to continue: "
 			read DUMMY

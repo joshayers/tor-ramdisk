@@ -5,9 +5,9 @@ TOR=tor-0.2.4.20
 NTPD=openntpd-3.9p1
 OPENSSH=openssh-6.1p1
 
-KVERSION=3.12.6
+KVERSION=3.13.3
 LINUX=linux-${KVERSION}
-PATCHES=hardened-patches-${KVERSION}-3.extras
+PATCHES=hardened-patches-${KVERSION}-2.extras
 
 ################################################################################
 
@@ -69,7 +69,7 @@ get_sources()
 	[[ ! -f $BUSYBOX.tar.bz2 ]] && wget http://www.busybox.net/downloads/$BUSYBOX.tar.bz2
 	[[ ! -f $TOR.tar.gz ]] && wget http://www.torproject.org/dist/$TOR.tar.gz
 	[[ ! -f $NTPD.tar.gz ]] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenNTPD/$NTPD.tar.gz
-	[[ ! -f $LINUX.tar.bz2 ]] && wget http://www.kernel.org/pub/linux/kernel/v3.x/$LINUX.tar.bz2
+	[[ ! -f $LINUX.tar.xz ]] && wget http://www.kernel.org/pub/linux/kernel/v3.x/$LINUX.tar.xz
 	[[ ! -f $PATCHES.tar.bz2 ]] && wget http://dev.gentoo.org/~blueness/hardened-sources/hardened-patches/$PATCHES.tar.bz2 
 	[[ ! -f $OPENSSH.tar.gz ]] && wget ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/$OPENSSH.tar.gz
 }
@@ -339,7 +339,7 @@ compile_kernel()
 {
 	cd $WORKING
 	[[ -f $LINUX/arch/$TARGET/boot/bzImage ]] && return 0
-	tar jxvf $WORKING/../sources/$LINUX.tar.bz2
+	tar Jxvf $WORKING/../sources/$LINUX.tar.xz
 	tar jxvf $WORKING/../sources/$PATCHES.tar.bz2 
 	cd $LINUX
 	for i in ../$KVERSION/4* ; do patch -p 1 < $i ; done 

@@ -216,7 +216,7 @@ cat << EOF > inittab
 tty1::respawn:/bin/setup
 tty2::respawn:/bin/nmeter '%79c'
 tty3::respawn:/bin/ntpd -s -d
-tty4::askfirst:-/bin/sh
+tty4::respawn:/bin/haveged -r 0 -w 1024 -v 1 -F -f -
 tty5::askfirst:-/bin/sh
 tty6::askfirst:-/bin/sh
 EOF
@@ -226,6 +226,7 @@ cat << EOF > inittab
 tty1::respawn:/bin/setup
 tty2::respawn:/bin/nmeter '%79c'
 tty3::respawn:/bin/ntpd -s -d
+tty4::respawn:/bin/haveged -r 0 -w 1024 -v 1 -F -f -
 EOF
 fi
 
@@ -234,7 +235,6 @@ cat << EOF > rcS
 /bin/mount -t proc proc /proc
 /bin/mount -o remount,rw /dev/ram0 /
 /sbin/ifconfig lo 127.0.0.1
-/bin/haveged -r 0 -w 1024 -v 0
 EOF
 
 chmod 755 rcS

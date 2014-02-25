@@ -203,113 +203,113 @@ populate_lib()
 
 populate_etc()
 {
-cd $WORKING/initramfs/etc
+	cd $WORKING/initramfs/etc
 
-cat << EOF > fstab
-/dev/ram0     /           ext2    defaults   0 0
-none          /proc       proc    defaults   0 0
-EOF
+	cat <<- EOF > fstab
+	/dev/ram0     /           ext2    defaults   0 0
+	none          /proc       proc    defaults   0 0
+	EOF
 
-if [[ "x$DEBUG" = "xyes" ]] ; then
-cat << EOF > inittab
-::sysinit:/etc/rcS
-tty1::respawn:/bin/setup
-tty2::respawn:/bin/nmeter '%79c'
-tty3::respawn:/bin/ntpd -s -d
-tty4::respawn:/bin/haveged -r 0 -w 1024 -v 1 -F -f -
-tty5::askfirst:-/bin/sh
-tty6::askfirst:-/bin/sh
-EOF
-else
-cat << EOF > inittab
-::sysinit:/etc/rcS
-tty1::respawn:/bin/setup
-tty2::respawn:/bin/nmeter '%79c'
-tty3::respawn:/bin/ntpd -s -d
-tty4::respawn:/bin/haveged -r 0 -w 1024 -v 1 -F -f -
-EOF
-fi
+	if [[ "x$DEBUG" = "xyes" ]] ; then
+		cat <<- EOF > inittab
+		::sysinit:/etc/rcS
+		tty1::respawn:/bin/setup
+		tty2::respawn:/bin/nmeter '%79c'
+		tty3::respawn:/bin/ntpd -s -d
+		tty4::respawn:/bin/haveged -r 0 -w 1024 -v 1 -F -f -
+		tty5::askfirst:-/bin/sh
+		tty6::askfirst:-/bin/sh
+		EOF
+	else
+		cat <<- EOF > inittab
+		::sysinit:/etc/rcS
+		tty1::respawn:/bin/setup
+		tty2::respawn:/bin/nmeter '%79c'
+		tty3::respawn:/bin/ntpd -s -d
+		tty4::respawn:/bin/haveged -r 0 -w 1024 -v 1 -F -f -
+		EOF
+	fi
 
-cat << EOF > rcS
-#!/bin/sh
-/bin/mount -t proc proc /proc
-/bin/mount -o remount,rw /dev/ram0 /
-/sbin/ifconfig lo 127.0.0.1
-EOF
+	cat <<- EOF > rcS
+	#!/bin/sh
+	/bin/mount -t proc proc /proc
+	/bin/mount -o remount,rw /dev/ram0 /
+	/sbin/ifconfig lo 127.0.0.1
+	EOF
 
-chmod 755 rcS
+	chmod 755 rcS
 
-cat << EOF > udhcpc
-#!/bin/sh
+	cat <<- EOF > udhcpc
+	#!/bin/sh
 
-/sbin/ifconfig \$interface \$ip
+	/sbin/ifconfig \$interface \$ip
 
-for i in \$router ; do
-	/sbin/route add default gw \$i dev \$interface
-done
+	for i in \$router ; do
+		/sbin/route add default gw \$i dev \$interface
+	done
 
-for i in \$dns ; do
-	echo "nameserver \$i" >> /etc/resolv.conf
-done
-EOF
+	for i in \$dns ; do
+		echo "nameserver \$i" >> /etc/resolv.conf
+	done
+	EOF
 
-chmod 755 udhcpc
+	chmod 755 udhcpc
 
-cat << EOF > udhcpc.nodns
-#!/bin/sh
+	cat <<- EOF > udhcpc.nodns
+	#!/bin/sh
 
-/sbin/ifconfig \$interface \$ip
+	/sbin/ifconfig \$interface \$ip
 
-for i in \$router ; do
-	/sbin/route add default gw \$i dev \$interface
-done
-EOF
+	for i in \$router ; do
+		/sbin/route add default gw \$i dev \$interface
+	done
+	EOF
 
-chmod 755 udhcpc.nodns
+	chmod 755 udhcpc.nodns
 
-cat << EOF > resolv.conf
-nameserver 127.0.0.1
-EOF
+	cat <<- EOF > resolv.conf
+	nameserver 127.0.0.1
+	EOF
 
-cat << EOF > ntpd.conf
-servers pool.ntp.org
-EOF
+	cat <<- EOF > ntpd.conf
+	servers pool.ntp.org
+	EOF
 
-cat << EOF > services
-ntp 123/tcp
-ntp 123/udp
-EOF
+	cat <<- EOF > services
+	ntp 123/tcp
+	ntp 123/udp
+	EOF
 
-cat << EOF > protocols
-ip   0  
-icmp 1  
-tcp  6  
-udp  17 
-EOF
+	cat <<- EOF > protocols
+	ip   0
+	icmp 1
+	tcp  6
+	udp  17
+	EOF
 
-cat << EOF > group
-root:x:0:
-tor:x:500:
-ntp:x:501:
-EOF
+	cat <<- EOF > group
+	root:x:0:
+	tor:x:500:
+	ntp:x:501:
+	EOF
 
-cat << EOF > gshadow
-root:*::
-tor:*::
-ntp:*::
-EOF
+	cat <<- EOF > gshadow
+	root:*::
+	tor:*::
+	ntp:*::
+	EOF
 
-cat << EOF > passwd
-root:x:0:0:,,,:/:/bin/sh
-tor:x:500:500:,,,:/var/empty:
-ntp:x:501:501:,,,:/var/empty:
-EOF
+	cat <<- EOF > passwd
+	root:x:0:0:,,,:/:/bin/sh
+	tor:x:500:500:,,,:/var/empty:
+	ntp:x:501:501:,,,:/var/empty:
+	EOF
 
-cat << EOF > shadow
-root:*:14000:0:99999:7::
-tor:*:14000:0:99999:7::
-ntp:*:14000:0:99999:7::
-EOF
+	cat <<- EOF > shadow
+	root:*:14000:0:99999:7::
+	tor:*:14000:0:99999:7::
+	ntp:*:14000:0:99999:7::
+	EOF
 }
 
 ################################################################################

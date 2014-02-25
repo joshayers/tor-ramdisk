@@ -6,9 +6,9 @@ NTPD=openntpd-3.9p1
 OPENSSH=openssh-6.1p1
 HAVEGED=haveged-1.9.1
 
-KVERSION=3.13.3
+KVERSION=3.13.5
 LINUX=linux-${KVERSION}
-PATCHES=hardened-patches-${KVERSION}-2.extras
+PATCHES=hardened-patches-${KVERSION}-1.extras
 
 ################################################################################
 

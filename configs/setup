@@ -508,6 +508,13 @@ exporting()
 	fi
 }
 
+stop_pause() {
+	echo
+	echo -n "Hit enter to continue: "
+	read DUMMY
+	echo
+}
+
 
 NETWORK=0
 CONFIGURED=0
@@ -534,6 +541,7 @@ do
 		fi
 	fi
 	echo "* Enter \"resources\" to see ram and cpu usage"
+	echo "* Enter \"entropy\" to check available entropy"
 	echo "* Enter \"reboot\" to export the secret_id_key/torrc AND reboot the system."
 	echo "* Enter \"shutdown\" to export the secret_id_key/torrc AND halt the system."
 	echo
@@ -589,20 +597,14 @@ do
 				echo "<Network is up and running!>"
 			fi
 
-			echo
-			echo -n "Hit enter to continue: "
-			read DUMMY
-			echo
+			stop_pause
 			;;
 
 		gettime)
 			echo
 			echo -n "The time is now: "
 			date
-			echo
-			echo -n "Hit enter to continue: "
-			read DUMMY
-			echo
+			stop_pause
 			;;
 
 		settime)
@@ -621,10 +623,7 @@ do
 			echo
 			echo -n "The time is now: "
 			date
-			echo
-			echo -n "Hit enter to continue: "
-			read DUMMY
-			echo
+			stop_pause
 			;;
 
 		netstatus)
@@ -633,23 +632,15 @@ do
 			if [ $NETWORK -ne 0 ]
 			then
 				ifconfig | more
-				echo -n "Hit enter to continue: "
-				read DUMMY
-				echo
+				stop_pause
 				route -n | more
-				echo
-				echo -n "Hit enter to continue: "
-				read DUMMY
-				echo
+				stop_pause
 				nslookup www.google.com | more
 			else
 				echo "*** FAILED network is not up yet! ***"
 			fi
 
-			echo
-			echo -n "Hit enter to continue: "
-			read DUMMY
-			echo
+			stop_pause
 			;;
 
 		nettest)
@@ -682,17 +673,11 @@ do
 						&& echo "OK Host $PING Reacheable" \
 						|| echo "FAILED Host $PING Unreacheable"
 
-					echo
-					echo -n "Hit enter to continue: "
-					read DUMMY
-					echo
+					stop_pause
 				fi
 			else
 				echo "*** FAILED network is not up yet! ***"
-				echo
-				echo -n "Hit enter to continue: "
-				read DUMMY
-				echo
+				stop_pause
 			fi
 
 			;;
@@ -707,10 +692,7 @@ do
 				echo "*** FAILED network is not up yet! ***"
 			fi
 
-			echo
-			echo -n "Hit enter to continue: "
-			read DUMMY
-			echo
+			stop_pause
 			;;
 
 		established)
@@ -723,10 +705,7 @@ do
 				echo "*** FAILED network is not up yet! ***"
 			fi
 
-			echo
-			echo -n "Hit enter to continue: "
-			read DUMMY
-			echo
+			stop_pause
 			;;
 
 		torconf)
@@ -763,10 +742,7 @@ do
 				echo "*** FAILED network is not up yet! ***"
 			fi
 
-			echo
-			echo -n "Hit enter to continue: "
-			read DUMMY
-			echo
+			stop_pause
 			;;
 
 		torstart)
@@ -800,10 +776,7 @@ do
 				fi
 			fi
 
-			echo
-			echo -n "Hit enter to continue: "
-			read DUMMY
-			echo
+			stop_pause
 			;;
 
 		torreload)
@@ -824,10 +797,7 @@ do
 				fi
 			fi
 
-			echo
-			echo -n "Hit enter to continue: "
-			read DUMMY
-			echo
+			stop_pause
 			;;
 
 		torstop)
@@ -848,28 +818,22 @@ do
 				fi
 			fi
 
-			echo
-			echo -n "Hit enter to continue: "
-			read DUMMY
-			echo
+			stop_pause
 			;;
 
 		resources)
 			free
-			echo
-			echo -n "Hit enter to continue: "
-			read DUMMY
-			echo
+			stop_pause
 			uptime
-			echo
-			echo -n "Hit enter to continue: "
-			read DUMMY
-			echo
+			stop_pause
 			top
-			echo
-			echo -n "Hit enter to continue: "
-			read DUMMY
-			echo
+			stop_pause
+			;;
+
+		entropy)
+			echo -n "Available entropy: "
+			cat /proc/sys/kernel/random/entropy_avail
+			stop_pause
 			;;
 
 		torexport)
@@ -900,10 +864,7 @@ do
 				fi
 			fi
 
-			echo
-			echo -n "Hit enter to continue: "
-			read DUMMY
-			echo
+			stop_pause
 			;;
 
 		reboot|shutdown)
